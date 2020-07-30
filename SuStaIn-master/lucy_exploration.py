@@ -14,7 +14,7 @@ from statsmodels.graphics.gofplots import qqplot
 import sklearn.model_selection
 from sklearn.covariance import EmpiricalCovariance
 from sklearn import linear_model
-from scipy.stats import ttest_ind
+from scipy.stats import ttest_ind, norm
 from sklearn.metrics import accuracy_score, mean_squared_error, r2_score, roc_curve, auc, confusion_matrix, balanced_accuracy_score, multilabel_confusion_matrix, classification_report # decent video guide: https://www.youtube.com/watch?v=TtIjAiSojFE
 import pylab
 
@@ -25,6 +25,16 @@ from kde_ebm import plotting
 data = pd.read_csv("/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD/Data - Enroll HD/enroll.csv", delimiter=',')
 print("data (1):", data.shape)
 
+# Random exploration
+data["hdcat"].value_counts()#/len(data)*100
+hdcat_4 = data[data["hdcat"].values == 4]
+hdcat_5 = data[data["hdcat"].values == 5]
+
+data["hdcat"].hist()
+hdcat_4["hdcat"].hist()
+hdcat_5["hdcat"].hist()
+
+
 # (0) Subsetting sata
 data_baseline_290 = data[data['visit'].values == ["Baseline"]] # Selecting BASELINE visits only
 data_baseline_290 = data_baseline_290.replace("<18", 17) # Replace <18 with 17 in age column
@@ -34,6 +44,23 @@ print("data_baseline_290:", data_baseline_290.shape)
 data_disease_290 = data_baseline_290[data_baseline_290['hdcat'].values != [4]]
 data_controls_290 = data_baseline_290[data_baseline_290['hdcat'].values == [4]]
 print("data_disease_290", data_disease_290.shape)
+
+# Checking if 3 (gen_neg) and 4 (family_controls) have similar dists - if so, we can lump them together under controls
+
+data_manifest_3 = data_baseline_290[data_baseline_290['hdcat'].values == [3]]
+data_manifest_3 = data_manifest_3[["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore"]]
+
+data_gen_neg_4 = data_baseline_290[data_baseline_290['hdcat'].values == [4]]
+data_gen_neg_4 = data_gen_neg_4[["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore"]]
+
+data_fam_control_5 = data_baseline_290[data_baseline_290['hdcat'].values == [5]]
+data_fam_control_5 = data_fam_control_5[["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore"]]
+
+
+data_manifest_3.hist()
+data_gen_neg_4.hist()
+data_fam_control_5.hist()
+
 
 # Adding covariates to control and disease SPLIT data
 data_disease_w_covariates = data_disease_290[["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore", "age", "isced"]].dropna() # *** NOTE: isced has some 13s in it (scale is 1-6)
@@ -59,8 +86,20 @@ print("data_disease:", data_disease.shape)
 # % of each value per column
 # data_disease["motscore"].value_counts()/len(data_disease)
 
-# # Normality check - visual
-# data_disease.hist()
+## Normality check
+# Histogram
+data_disease.hist()
+# KDE
+data_disease["tfcscore"].plot.density() #KDE
+# PDF.... https://www.kite.com/python/docs/scipy.stats.norm.pdf
+x = data_disease["tfcscore"]
+w = 4
+h = 3
+d = 70
+plt.figure(figsize=(w, h), dpi=d)
+x = np.linspace(norm.ppf(0.01), norm.ppf(0.99), 100)
+plt.plot(x, norm.pdf(x))
+plt.savefig("out.png")
 
 # # Normality test
 # scipy.stats.shapiro(data_disease["motscore"])

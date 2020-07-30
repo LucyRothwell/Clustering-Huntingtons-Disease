@@ -6,7 +6,6 @@
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from matplotlib import cbook as cbook
 import os
 
 from simfuncs import generate_random_sustain_model, generate_data_sustain
@@ -14,6 +13,7 @@ from simfuncs import generate_random_sustain_model, generate_data_sustain
 from kde_ebm.mixture_model import fit_all_kde_models, fit_all_gmm_models
 from kde_ebm import plotting
 
+from matplotlib import cbook as cbook
 import warnings
 warnings.filterwarnings("ignore", category=cbook.mplDeprecation)
 
@@ -23,33 +23,33 @@ from MixtureSustain import MixtureSustain
 import sklearn.model_selection
 
 import pkge0
-from pkge0.pre_procc_pipeline import pipeline
+from pkge0.preprocessing_pipeline import *
 
+# pd.set_option('display.max_rows', None) # Just a display setting for df printing
+# pd.set_option('display.max_columns', None)
 
 # PIPELINE: LOAD AND PRE-PROCESS DATA
-data = pd.read_csv("/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD/Data - Enroll HD/enroll.csv", delimiter=',')
-data = pipeline(data, return_stats=False) # (1) Regresses out covariates, (2) Find mean and SD of features, (3) Takes Z scores, (4) Makes sure all Z scores are increasing
-
+df = pd.read_csv("/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD/Data - Enroll HD/enroll.csv", delimiter=',')
+data = pipeline("mixture_KDE", df, return_stats=False) # (1) Regresses out covariates + if needed; (2) Finds mean and SD of features, (3) Takes Z scores, (4) Makes sure all Z scores are increasing
+print("data(1):", data) # Prints data normally
 
 def main(data):
     # cross-validation
     validate = True
-    N_folds = 10
+    N_folds = 10 # recommended 10
 
-    N = data.shape[1]  # number of biomarkers
-    M = data.shape[0]  # number of observations ( e.g. subjects )
+    N = df.shape[1]  # number of biomarkers
+    M = df.shape[0]  # number of observations ( e.g. subjects )
     # N_S_gt = 3  # number of ground truth subtypes
 
-
-    N_startpoints = 25 # number of starting points
-    N_S_max = 3 # maximum number of subtypes
-    N_iterations_MCMC = int(1e5)  # int(1e6)
+    N_startpoints = 25 # Number of starting points to use when fitting the subtypes hierarchichally. I'd suggest using 25.
+    N_S_max = 3 # The maximum number of subtypes to fit. I'd suggest starting with a lower number - maybe three - and then increasing that if you're getting a significantly better fit with the maximum number of subtypes. You can judge this roughly from the MCMC plot. To properly evaluate the optimal number of subtypes you need to run cross-validation.
+    N_iterations_MCMC = int(1e5)  # The number of iterations for the MCMC sampling of the uncertainty in the progression pattern. I'd recommend using 1x10^5 or 1x10^6.
 
     # either 'mixture_GMM' or 'mixture_KDE' or 'zscore'
     sustainType = 'mixture_KDE'
 
-    assert sustainType in (
-    "mixture_GMM", "mixture_KDE", "zscore"), "sustainType should be either mixture_GMM, mixture_KDE or zscore"
+    assert sustainType in ("mixture_GMM", "mixture_KDE", "zscore"), "sustainType should be either mixture_GMM, mixture_KDE or zscore"
 
     dataset_name = 'enroll.csv'
     output_folder = dataset_name + '_' + sustainType #"/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD/SuStaIn-master" # Choose an output folder for the results.
@@ -80,17 +80,29 @@ def main(data):
     #                                                          Z_vals,
     #                                                          Z_max)
 
+    print("data(2):", data)  #  Works
     # choose which subjects will be cases and which will be controls
-    index_case = np.where(data["hdcat"] != 4)
-    index_control = np.where(data["hdcat"] == 4)
+    index_case = np.where(data["hdcat"] == 1) # gets the row numbers of the data where hdcat - 1 (cases)
 
-    labels = 2 * np.ones(data.shape[0], dtype=int)  # 2 - MCI, default assignment here
+    index_control = np.where(data["hdcat"] == 0) # gets the row numbers of the data where hdcat - 0 (controls)
+
+    # print("index_control.shape =", index_control.shape)
+    # print("index_case.shape =", index_case.shape)
+    print("index_case =", index_case)
+    print("index_control =", index_control) # All correct
+
+    # PROBLEM
+    labels = 2 * np.ones(data.shape[0], dtype=int)  # 2 = MCI, default assignment here
     labels[index_case] = 0
     labels[index_control] = 1
 
+    print("labels =", labels)
+    print("labels[index_case] =", labels[index_case])
+    print("labels[index_control] =", labels[index_control])
+
     if sustainType == 'mixture_GMM' or sustainType == "mixture_KDE":
 
-        data_case_control = data[labels != 2, :]
+        data_case_control = data[labels != 2, :] # PROBLEM line
         labels_case_control = labels[labels != 2]
 
         if sustainType == "mixture_GMM":
