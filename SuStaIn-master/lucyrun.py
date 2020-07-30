@@ -96,10 +96,6 @@ def main(data):
     labels[index_case] = 0
     labels[index_control] = 1
 
-    print("labels =", labels)
-    print("labels[index_case] =", labels[index_case])
-    print("labels[index_control] =", labels[index_control])
-
     if sustainType == 'mixture_GMM' or sustainType == "mixture_KDE":
 
         data_case_control = data[labels != 2, :] # PROBLEM line
