@@ -30,8 +30,8 @@ from pkge0.preprocessing_pipeline import *
 
 # PIPELINE: LOAD AND PRE-PROCESS DATA
 df = pd.read_csv("/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD/Data - Enroll HD/enroll.csv", delimiter=',')
-data = pipeline("mixture_KDE", df, return_stats=False) # (1) Regresses out covariates + if needed; (2) Finds mean and SD of features, (3) Takes Z scores, (4) Makes sure all Z scores are increasing
-print("data(1):", data) # Prints data normally
+data = pipeline(df, "mixture_KDE", return_stats=False) # (1) Regresses out covariates + if needed; (2) Finds mean and SD of features, (3) Takes Z scores, (4) Makes sure all Z scores are increasing
+print("data(post pipeline).shape:", data.shape) # Prints data normally
 
 def main(data):
     # cross-validation
@@ -80,39 +80,48 @@ def main(data):
     #                                                          Z_vals,
     #                                                          Z_max)
 
-    print("data(2):", data)  #  Works
+
+
+      # Works
     # choose which subjects will be cases and which will be controls
-    index_case = np.where(data["hdcat"] == 1) # gets the row numbers of the data where hdcat - 1 (cases)
+    # index_case = np.where(data["hdcat"] == 1) # gets the row numbers of the data where hdcat=1 (cases)
+    # index_control = np.where(data["hdcat"] == 0) # gets the row numbers of the data where hdcat=0 (controls)
+    #
+    # # print("index_control.shape =", index_control.shape)
+    # # print("index_case.shape =", index_case.shape)
+    # print("index_case =", index_case)
+    # print("index_control =", index_control) # All correct
+    #
+    # # PROBLEM
+    # labels = 2 * np.ones(data.shape[0], dtype=int)  # 2 = MCI, default assignment here
+    # labels[index_case] = 0
+    # labels[index_control] = 1
 
-    index_control = np.where(data["hdcat"] == 0) # gets the row numbers of the data where hdcat - 0 (controls)
-
-    # print("index_control.shape =", index_control.shape)
-    # print("index_case.shape =", index_case.shape)
-    print("index_case =", index_case)
-    print("index_control =", index_control) # All correct
-
-    # PROBLEM
-    labels = 2 * np.ones(data.shape[0], dtype=int)  # 2 = MCI, default assignment here
-    labels[index_case] = 0
-    labels[index_control] = 1
-
-    print("labels =", labels)
-    print("labels[index_case] =", labels[index_case])
-    print("labels[index_control] =", labels[index_control])
+    # print("labels =", labels)
+    # print("labels[index_case] =", labels[index_case])
+    # print("labels[index_control] =", labels[index_control])
 
     if sustainType == 'mixture_GMM' or sustainType == "mixture_KDE":
 
-        data_case_control = data[labels != 2, :] # PROBLEM line
-        labels_case_control = labels[labels != 2]
+        # data.columns = ["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore", "hdcat"]
+        # print("data(2):", data)
 
+        case_control_all = data[data[:, 5] != 2]
+        print("case_control_all.shape", case_control_all.shape)
+        labels_case_control = case_control_all[:, 5]
+        print("labels_case_control.shape", labels_case_control.shape)
+        data_case_control = case_control_all[:, range(0,5)]
+        print("data_case_control.shape", data_case_control.shape)
+
+        # print("data(3)", data)
         if sustainType == "mixture_GMM":
-            mixtures = fit_all_gmm_models(data, labels)
+            mixtures = fit_all_gmm_models(data, data[:, 5])
         elif sustainType == "mixture_KDE":
-            mixtures = fit_all_kde_models(data, labels)
+            mixtures = fit_all_kde_models(data, data[:, 5]) # Crashed line 61 in utils.py
 
         fig, ax, _ = plotting.mixture_model_grid(data_case_control, labels_case_control, mixtures, SuStaInLabels)
         fig.show()
-        fig.savefig(os.path.join(outDir, 'kde_fits.png'))
+        fig.savefig(os.path.join(outDir, 'kde_fits.png')) #outDir should be output_folder
 
         L_yes = np.zeros(data.shape)
         L_no = np.zeros(data.shape)
@@ -125,7 +134,6 @@ def main(data):
 
         sustain = MixtureSustain(L_yes, L_no, SuStaInLabels, N_startpoints, N_S_max, N_iterations_MCMC, output_folder,
                                  dataset_name)
-
 
     elif sustainType == 'zscore':
 

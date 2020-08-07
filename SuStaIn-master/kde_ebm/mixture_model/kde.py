@@ -18,7 +18,7 @@ class KDEMM(object):
         kde_values = X.copy()[sorted_idx]
         kde_labels = y.copy()[sorted_idx]
 
-        bin_counts = np.bincount(y).astype(float)
+        bin_counts = np.bincount(y).astype(float) # * PROBLEM: TypeError: Cannot cast array data from dtype('float64') to dtype('int64') according to the rule 'safe'
         mixture = 0.5
         old_ratios = np.zeros(kde_labels.shape)
         iter_count = 0
