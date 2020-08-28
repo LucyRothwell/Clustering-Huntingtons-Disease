@@ -1,27 +1,50 @@
 # import the python packages needed to generate simulated data for the tutorial
-import os
-import shutil
-import scipy
-import pickle
-from pathlib import Path
-import matplotlib.pyplot as plt
-# from matplotlib import pyplot
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from ZscoreSustain import ZscoreSustain
-from statsmodels.graphics.gofplots import qqplot
-import sklearn.model_selection
-from sklearn.covariance import EmpiricalCovariance
 from sklearn import linear_model
-from scipy.stats import ttest_ind
-from sklearn.metrics import accuracy_score, mean_squared_error, r2_score, roc_curve, auc, confusion_matrix, balanced_accuracy_score, multilabel_confusion_matrix, classification_report # decent video guide: https://www.youtube.com/watch?v=TtIjAiSojFE
-import pylab
 
-from kde_ebm.mixture_model import fit_all_kde_models, fit_all_gmm_models
-from kde_ebm import plotting
+# Contents
+# (1) Re-code / Fix erroneous values
+# (2) Subset data
+# (3) Regress out covariates
+# (4) Remove outliers
 
-# ------------------------ FUNCTIONS FOR USE IN PIPELINE ---------------------------------------------------------------
+# --------------------------- (1) RE-CODE / FIX ERRONEOUS VALUES ---------------------------------------------------------------------------
+# Specific to enroll
+
+def fix_erroneous(df):
+    # Replace <18 ("age") with 17 (making it numeric)
+    df.replace("<18", 17, inplace=True)  # Replaces <18 in "age" with 17 (making it numeric)
+
+    # Re-code hdcat values: 0=control, 1=manifest, 2=pre-manifest
+    df["hdcat"].replace(3, 1, inplace=True)
+    df["hdcat"].replace(4, 0, inplace=True)
+    df["hdcat"].replace(5, 0, inplace=True)
+    # print(df["hdcat"].value_counts())
+
+    # Remove isceds > 6 (scale ends at 6)
+    df['isced'].value_counts() # Count values
+    data = df.drop(df[df.isced > 6].index) # isced is scored 0-6
+    # print("data_baseline_290(>6 dropped).shape (returned from subset()):", df.shape)
+
+    return data
+
+
+
+# --------------------------- (2) SUBSETTING ---------------------------------------------------------------------------
+# > Selects only baseline visits
+# > Drops missing values
+
+def subset(df, features_list):
+    df = df[df['visit'].values == ["Baseline"]] # Selecting BASELINE visits only
+    data = df[features_list].dropna()  # Drop missing values
+    return data
+
+# -------------------- (3) REGRESSING OUT COVARIATES FUNCTIONS ---------------------------------------------------------
+# > Regresses out covariates
+# > Prepares return data:
+#   - If sustainType='mixture_GMM' or "mixture_KDE" - Adds labels column back on before returning (KDE uses labels col) - rerturns hdcat = 0,1,2 (controls, disease, pre-man)
+#   - If sustainType='ZScoreSustain' - (1) Calculates means and SDs (2) Gets Z scores (3) Adjusts biomarkers that decrease with disease progression - returns disease only (hdcat=1?)
 
 def nu_freq(X_reg, y_reg): # Get regression params for each biomarker
     lr = linear_model.LinearRegression()
@@ -30,25 +53,9 @@ def nu_freq(X_reg, y_reg): # Get regression params for each biomarker
 
 def controls_residuals(X, y, covar): # y used only to separate controls from disease group
     controls_covar = covar[y == 0] # taking covariates where y are controls
-    # print("type(X)", type(X))
-    # print("type(y)", type(y))
-    # print("type(covar)", type(covar))
-    #
-    # print("type(X[0])", type(X[0])) # type = numpy.array
-    # print("type(y[0])", type(y[0])) # type = float64
-    # print("type(covar[0])", type(covar[0])) # type = numpy.array
-
-    # print("X[0]", X[0])
-    # print("y[0]", y[0])
-    # print("covar[0]", covar[0])
-
-    # print("X.dtype:", X.dtype)
-    # print("y.dtype:", y.dtype)
-    # print("controls_covar.dtype:", X.dtype)
-
-    print("X.shape:", X.shape)
-    print("y.shape:", y.shape)
-    print("covar.shape:", covar.shape)
+    # print("X.shape:", X.shape)
+    # print("y.shape:", y.shape)
+    # print("covar.shape:", covar.shape)
     # print("controls_covar", type(controls_covar))
     controls_X = X[y == 0] # taking predictor data where y are controls
     # print("controls_X.shape", controls_X.shape)
@@ -69,76 +76,24 @@ def controls_residuals(X, y, covar): # y used only to separate controls from dis
     for key, value in regr_params.items(): # TAKING THE COEFFICIENTS AWAY FROM EACH VALUE IN EACH BIOMARKER. For each biomarker in the regr_params dict
         residuals[:, key] -= regr_params[key][1] # resids[] = resids[] - regr_params[]
         residuals[:, key] -= np.matmul(covar, regr_params[key][0]) # resids[] = resids[] - regr_params[]
-    print("residuals.shape(funct):", residuals.shape)
-    # print("hdcat.shape(funct):", hdcat.shape)
-    # residuals = np.append(residuals, hdcat[:, None], axis=1) # Putting hdcat back on for KDE / GMM models
-    print("residuals.shape(funct2):", residuals.shape)
-    return residuals # Produces adjusted residuals
+    # print("residuals.shape(funct):", residuals.shape)
+    data = np.round((residuals), 4)  # Round all values to 4 decimal places
+    return data # Produces adjusted residuals
 
-# ---------------------------PIPELINE FUNCTION -------------------------------------------------------------------------
-
-def pipeline(df, sustainType, return_stats=False):
-    # (0) Subsetting data
-    data_baseline_290 = df[df['visit'].values == ["Baseline"]].replace("<18", 17) # Selecting BASELINE visits only
-    # print("data_baseline_290(1):", data_baseline_290.shape)
-    # print(data_baseline_290["age"].value_counts())
-    # print(data_baseline_290["hdcat"].value_counts())
-    # data7 = data_baseline_290[["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore", "age", "isced", "hdcat"]].dropna() # TEST - DELETE
-
-    # Label/ re-code hdcat values: 0=control, 1=manifest, 2=pre-manifest
-    data_baseline_290["hdcat"].replace(3,1, inplace=True)
-    data_baseline_290["hdcat"].replace(4,0, inplace=True)
-    data_baseline_290["hdcat"].replace(5,0, inplace=True)
-
-    print(data_baseline_290["hdcat"].value_counts())
-
-    # Removing seemingly erroneous values - i.e., values outside the possible values in a scale
-    data_baseline_290['isced'].value_counts() # Count values
-    data_baseline_290 = data_baseline_290.drop(data_baseline_290[data_baseline_290.isced > 6].index) # isced is scored 0-6
-    print("data_baseline_290(>6 dropped).shape:", data_baseline_290.shape)
-
-    # # Splitting controls and disease so they can be labelled for control_residuals() - ALL PREDICTORS
-    # data_disease_290 = data_baseline_290[data_baseline_290['hdcat'].values == [1]]
-    # data_controls_290 = data_baseline_290[data_baseline_290['hdcat'].values == [0]]
-    # print("data_disease_290:", data_disease_290.shape)
-
-    # Selecting predictors and covariates for combined
-    data_w_covariates = data_baseline_290[["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore", "age", "isced", "hdcat"]].dropna()
-    print("data_w_covariates.shape:", data_w_covariates.shape)
-    # data_disease_w_covariates = data_disease_w_covariates.apply(pd.to_numeric)
-    # data_controls_w_covariates = data_controls_290[["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore", "age", "isced", "hdcat"]].dropna()  # add "isced" sex and siteID
-    # data_controls_w_covariates = data_controls_w_covariates.apply(pd.to_numeric) # Changing age from string to int
-    # data_combined_w_covariates = pd.concat([data_controls_w_covariates, data_disease_w_covariates])  # Needed for clinical labels
-    # data_combined_w_covariates = data_combined_w_covariates.apply(pd.to_numeric)  # Changing age from string to int
-    # print("data_combined_w_covariates:", data_combined_w_covariates)
-    # print("data_combined_w_covariates.shape:", data_combined_w_covariates.shape)
-    # # data_combined_w_covariates_w_covariates = pd.to_numeric(data_combined_w_covariates["age"]) # Changing age from string to int
-
-    # # Selecting five predictors - control & disease COMBINED
-    # data_contr_dis = data_combined_w_covariates[["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore"]]
-
-    # # Selecting five predictors - control & disease SPLIT
-    # data_disease = pd.DataFrame(data_disease_w_covariates[["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore"]])
-    # data_controls = pd.DataFrame(data_controls_w_covariates[["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore"]])
-    # print("data_disease:", data_disease.shape)
-    # # N = data_disease.shape[1]
+def covariate_adjustment(data_w_covariates, sustainType, return_stats=False):
+    # #------raw hists ------------
+    # if return_raw_hists == True:
+    #     disease_raw = data_w_covariates[df["hdcat"].values == 1]
+    #     control_raw = data_w_covariates[data_w_covariates["hdcat"] == 0]
+    #     disease_raw.hists()
+    #     control_raw.hists()
+    #----------------------------
 
     # (1) Regressing out covariates
     # (1a) Getting input data for controls_residuals()
     array_of_covariate_data = np.array(data_w_covariates[["age", "isced"]], dtype=np.float64) # # Selecting only the covariates
-    # Adding labels to controls and disease sets  - then combining them
-    # data_disease.insert(0, 'disease/controls', 1)
-    # data_controls.insert(0, 'disease/controls', 0)
-    # data_combined_labelled = pd.concat([data_disease, data_controls])
     array_of_clinical_labels = np.array(data_w_covariates["hdcat"]) # Selecting only the label column
-    # print("array_of_clinical_labels", array_of_clinical_labels)
     array_of_data_to_be_adjusted = np.array(data_w_covariates.iloc[:, 0:5], dtype=np.float64) # Selecting only the predictor columns
-    # print("array_of_data_to_be_adjusted", array_of_data_to_be_adjusted)
-    # print("array_of_data_to_be_adjusted.shape", array_of_data_to_be_adjusted.shape)
-    # hdcat = np.array(data_w_covariates["hdcat"]) # selecting hdcat - it will be added back on at end of controls_residuals()
-    # print("hdcat:", hdcat)
-    # print("hdcat.shape:", hdcat.shape)
-
     # swap in arrays for your data; shapes of each array as follows:
     # array_of_data_to_be_adjusted.shape = (Number of people, Number of biomarkers)
     # array_of_clinical_labels.shape = (Number of people)
@@ -146,21 +101,21 @@ def pipeline(df, sustainType, return_stats=False):
 
     # (1b) RUN controls residuals:
     data_adjusted = pd.DataFrame(controls_residuals(array_of_data_to_be_adjusted, array_of_clinical_labels, array_of_covariate_data))
-    print("data_adjusted.shape:", data_adjusted.shape)
-    data_adjusted.columns = ["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore"]
 
-    if sustainType == 'mixture_GMM' or sustainType == "mixture_KDE":
-        data = np.concatenate((data_adjusted, array_of_clinical_labels[:, None]), axis=1)
-        print("data_adjusted.shape(funct3):", data_adjusted.shape)
-        return np.array(data)
+    # (1c) Prepare data for return depending on sustainType
+    # global data_preprocessed  # Making global so can be returned to main
+    if sustainType == 'mixture_GMM' or sustainType == "mixture_KDE": # Add labels column back on before returning (KDE uses labels col)
+        data_preprocessed = np.concatenate((data_adjusted, array_of_clinical_labels[:, None]), axis=1)
+        return data_preprocessed
 
-    elif sustainType == "zscore": # Take z scores of data
+    # CHECK THIS ELIF WORKS
+    elif sustainType == "zscore": # Take z scores of data and return without labels column
         # Re-splitting updated data for step (2)
         array_of_clinical_labels = pd.DataFrame(array_of_clinical_labels)
         data_with_labels = pd.concat([data_adjusted, array_of_clinical_labels], axis=1)
         data_with_labels.columns = ["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore", "labels"]
         data = data_with_labels[data_with_labels['labels'].values == [1]].iloc[:, :5]
-        data_controls = data_with_labels[data_with_labels['labels'].values == [0]].iloc[:, :5]
+        data_controls = data_with_labels[data_with_labels['labels'].values == [0]].iloc[:, :5] # Subset controls for use in z score modelling
 
         # (2) Calculate the mean and standard deviation of each biomarker in your controls dataset
         mean_controls = np.mean(data_controls, axis=0)
@@ -169,10 +124,10 @@ def pipeline(df, sustainType, return_stats=False):
         # (3) Z-score your data by taking (data-mean_controls)/std_controls.
         # data_zscore = scipy.stats.zscore(data) #  Gets different results...
         data = (data - mean_controls) / std_controls
-        print("data:", data.shape)
+        # print("data:", data.shape)
         data_controls = (data_controls - mean_controls) / std_controls
 
-        ## (4) Identify any biomarkers that decrease with disease progression, these will have mean_data < mean_controls.
+        # (4) Identify any biomarkers that decrease with disease progression, these will have mean_data < mean_controls.
         # Multiply the data for these biomarkers by -1.
         # *** NEEDS AUTOMATED
         IS_decreasing_1 = np.mean(data, axis=0) < np.mean(data_controls, axis=0)
@@ -201,4 +156,23 @@ def pipeline(df, sustainType, return_stats=False):
             return np.array(data)
 
 
+# -------------------------- (4) REMOVING OUTLIERS -------------------------
+# > Counts ouliers more than 5 (can be set) SDs above or below the mean
+# > If remove=True, it also deletes their rows
 
+def outlier_removal(data, features_list, sd_num=5, remove=False):
+    data = pd.DataFrame(data)
+    data.columns = features_list
+    feature_num = 0 # For printing outlier count per feature
+    for i in features_list:
+        rows1 = data[i].shape[0] # For working out total outlers per column
+        sd_col = data[i].std()
+        # print("sd_col", sd_col)
+        data.drop(data[data[i] > sd_num * sd_col].index, inplace=True, axis=0)
+        data.drop(data[data[i] < -sd_num * sd_col].index, inplace=True, axis=0)
+        rows2 = data[i].shape[0] # For working out total outliers per column
+        outlier_count = rows1-rows2
+        print(features_list[feature_num], "outlier_count =", outlier_count)
+        feature_num = feature_num + 1 # For printing outlier count per feature
+    data = np.array(data)
+    return data

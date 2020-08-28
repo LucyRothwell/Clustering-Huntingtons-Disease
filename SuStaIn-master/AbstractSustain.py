@@ -137,6 +137,7 @@ class AbstractSustain(ABC):
                 ml_sequence_mat_EM, \
                 ml_f_mat_EM,        \
                 ml_likelihood_mat_EM        = self._estimate_ml_sustain_model_nplus1_clusters(self.__sustainData, ml_sequence_prev_EM, ml_f_prev_EM) #self.__estimate_ml_sustain_model_nplus1_clusters(self.__data, ml_sequence_prev_EM, ml_f_prev_EM)
+                # PROBLEM ^
                 # print(ml_likelihood_mat_EM) # lucy*** added
                 seq_init                    = ml_sequence_EM
                 f_init                      = ml_f_EM

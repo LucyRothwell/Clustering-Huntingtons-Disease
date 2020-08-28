@@ -17,8 +17,13 @@ class KDEMM(object):
         sorted_idx = X.argsort(axis=0).flatten()
         kde_values = X.copy()[sorted_idx]
         kde_labels = y.copy()[sorted_idx]
-
-        bin_counts = np.bincount(y).astype(float) # * PROBLEM: TypeError: Cannot cast array data from dtype('float64') to dtype('int64') according to the rule 'safe'
+        # print("type(y):", type(y))
+        # print("y.dtype:", y.dtype)
+        y.dtype = int
+        # print("y.dtype:", y.dtype)
+        y = y.astype(int)
+        bin_counts = np.bincount(y).astype(float) # * PROBLEM: TypeError: Cannot cast array data from dtype('float64')
+        # print("bin_counts =", bin_counts)           # to dtype('int64') according to the rule 'safe'
         mixture = 0.5
         old_ratios = np.zeros(kde_labels.shape)
         iter_count = 0
@@ -87,6 +92,8 @@ class KDEMM(object):
 
     def probability(self, X):
         controls_score, patholog_score = self.pdf(X.reshape(-1, 1))
+        # print(controls_score.shape)
+        # print(patholog_score.shape)
         return controls_score / (controls_score+patholog_score)
 
     def BIC(self, X):
