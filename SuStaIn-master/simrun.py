@@ -91,7 +91,6 @@ def main():
         fig.show()
         fig.savefig(os.path.join(outDir, 'kde_fits.png'))
 
-        L_yes               = np.zeros(data.shape)
         L_no                = np.zeros(data.shape)
 
         for i in range(N):
