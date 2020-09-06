@@ -28,110 +28,235 @@ from pkge0.feature_selection import *
 # pd.set_option('display.max_columns', None)
 
 # PIPELINE: LOAD AND PRE-PROCESS DATA
-df = pd.read_csv("/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD/Data - Enroll HD/enroll.csv", delimiter=',')
+enroll_df = pd.read_csv("/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD/Data - Enroll HD/enroll.csv", delimiter=',')
+profile_df = pd.read_csv("/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD/Data - Enroll HD/profile.csv", delimiter=',')
+# profile_df = profile_df[profile_df["visit"]=="Baseline"]
+data = re_code_hdcat(enroll_df)
 
-# Define Sustain Type
+# # ------------------ Pete's hist (1/3)------------------------------------------
+testing_var = "sit1"
+# df = enroll_df[enroll_df["mmsetotal"] > -50]
+# df = df[df["mmsetotal"] < 150]
+# tms = df[testing_var].values
+# hist = []
+# labels = []
+# for i in np.unique(df['hdcat'].values):
+#     if np.isnan(tms[df['hdcat'].values==i]).all():
+#         continue
+#     hist.append(tms[df['hdcat'].values==i])
+#     labels.append(str(i))
+# plt.hist(hist,label=labels,stacked=True)
+# plt.yscale("log")
+# plt.xlabel(testing_var)
+# plt.ylabel('Frequency')
+# plt.legend()
+# plt.show()
+# # ------------------------------------------------------------------------
+
+# # --------------- gene_neg / fam_control exploration -------------------
+# gene_neg = enroll_df[enroll_df["hdcat"]==4]
+# fam_control = enroll_df[enroll_df["hdcat"]==5]
+#
+# gene_neg_base = gene_neg[gene_neg["visit"]=="Baseline"]
+# fam_control_base = fam_control[fam_control["visit"]=="Baseline"]
+
+# gene_neg_sub = gene_neg["subjid", "dystrle", "sacvelv", "dystlue", "rigarml", "brady", "age", "isced", "hdcat"]
+# fam_control = fam_control["subjid", "dystrle", "sacvelv", "dystlue", "rigarml", "brady", "age", "isced", "hdcat"]
+# -----------------------------------------------------------------------
+
+#------------- HISTS ------------------------
+# disease = enroll_df[enroll_df["hdcat"]==1]
+# controls = enroll_df[enroll_df["hdcat"]==0]
+# motscore = disease["motscore"]
+# print(motscore.value_counts())
+# -------------------------------------------
+
+## (0) Define settings: Sustain type & features etc
 sustainType = "mixture_KDE" # for use in functions later
+num_covars = 2
 
-# (0) Remove erroneous values specific to enroll
-data = fix_erroneous(df)
+# features_list = ["subjid", "motscore", "rigarml", "dystlue", "chorbol", "chorrue", "sacinith", "tfcscore", "verfct7", "swrt2", "age", "isced", "hdcat"] # 5 FITS -  3 motor, 1 cog + tfc score - (AD HOC ON tfcscore)
+features_list = ["subjid", "motscore", "rigarml", "dystlue", "swrt2", "tfcscore", "age", "isced", "hdcat"] # 5 FITS -  3 motor, 1 cog + tfc score - (AD HOC ON tfcscore)
+# features_list = ["subjid", "motscore", "dystlue", "rigarml", "chorrue", "tfcscore", "age", "isced", "hdcat"] # 5 FITS -  4 motor + tfc score - (AD HOC ON tfcscore)
+# features_list = ["subjid", "motscore", "dystlue", "rigarml", "chorbol", "chorlue", "age", "isced", "hdcat"] # 5 FITS - ALL MOTOR - (NO AD HOC)
 
-#--------------- counting---------------------
-# print(df["caghigh"])
-# baseline = df[df["visit"] == "Baseline"]
-# controls = baseline[baseline["hdcat"] == 0]
-# disease = baseline[baseline["hdcat"] == 1]
-# preman = baseline[baseline["hdcat"] == 2]
-#---------------------------------------------
+# features_list = ["subjid", "chorbol", "chorlue", "finances", "tfcscore", "diagconf", "age", "isced", "hdcat"] # Wilcoxon top 5
+# features_list = ["subjid", "chorbol", "chorlue", "chorrue", "chortrnk", "chorrle", "age", "isced", "hdcat"] # Wilcoxon chor
+# features_list = ["subjid", "brady", "dystrle", "rigarml", "sacvelh", "dystlue", "age", "isced", "hdcat"] # T-test top 5 tests
+# features_list = ["subjid", "dystrle", "sacvelv", "dystlue", "rigarml", "brady", "age", "isced", "hdcat"] #  RF top 5 tests
 
-# (1) Feature selection
-# ttest_results = feature_selection_ttest(data)
-rf_importances = feature_selection_rf(data) # Gives totally different results from ttest...
+num_predictors = len(features_list)-num_covars-2 # 2 to also take away hdcat and subjid
 
-# Choose 5 features (based on feature_selection()) + 2 covariates + hdcat
-features_list = ["scnt1", "swrt1", "sit1", "mmsetotal", "brady",  "age", "isced", "hdcat"] # 4 fits - COGNITIVE ONLY ("total correct" on 5 tests)
-# features_list = ["sit2", "mmsetotal", "tfcscore", "clb", "exfscore", "age", "isced", "hdcat"] # 2 fits
-# features_list = ["pakfrq", "bar", "rigarml", "cocfrq", "herfrq",  "age", "isced", "hdcat"] # X fits - T-TEST  >>ALL ARE SUBSTANCES-BASED
-# features_list = ["dystlue", "prosupr", "brady", "sacinitv", "dystrle",  "age", "isced", "hdcat"] # X fits - T-TEST symptom tests  >>ALL ARE MOTOR-BASED
 
-# features_list = ["clb", "clbfrq", "hxbar", "hxtrq", "hxpakfrq",  "age", "isced", "hdcat"] # 0 FITS - RF TOP 5
-# features_list = ["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore", "age", "isced", "hdcat"] # ORGINAL
+# (1) Fix erroneous values
+data = fix_erroneous(data)
 
-# motscore (motor - Motor Diagnostic Confidence) - Motor test score. p=0.0
-# tfcscore (motor? - Total Functional Capacity) - Total functional score. p=0.0
-# ocularh (motor - Motor Diagnostic Confidence) - Group occular pursuit: horizontal. p=0.0
-# sacinith (motor - Motor Diagnostic Confidence) - Group Saccade initiation: horizontal. p=0.0
-# fingtapr (motor - Motor Diagnostic Confidence) - Finger tap right. p=0.0
-# brady (motor - Motor Diagnostic Confidence) - Bradykinesia‐body. p=0.0
-# dystlle (motor - Motor Diagnostic Confidence) - Group maximal dystonia. p=0.0002
-# ---
-# verfct6 (cogn - Cognitive Assessment) - Verbal fluency test: Total intrusion errors. p=0.0193
-# sit2 (cogn - Cognitive Assessments) - Stroop Interference: total errors. p=0.0243
-# swrt3 (cogn - Cognitive Assessments) - Stroop: Total self‐corrected errors. p=0.0249 (**SAME AS sit2**)
-# scnt2 (cogn - Cognitive Assessments) - Stroop - total errors. p=0.0077
-# ---
-# pbas1sv (psych - Problem Behaviours Assessment) - Group depressed mood: Severity. p=0.0391.
-# ---
-# fascore (gen - UHDRS Functional Assessment Independence Scale) - Functional assmt score. p=0.0002
-# indepscl (gen - UHDRS Functional Assessment Independence Scale) - Subject's independence in %. p=0.0
-# p > 0.05: "mmsetotal", "irascore", "exfscore"
-# ---
-# GOOD P CURVE ON:
-# "mmsetotal" (p-value > 0.05?)
-# "sit2" (varies based on which other vars are in feature_list - presumably because different nas get dropped)
-# "brady" (varies based on which other vars are in feature_list - presumably because different nas get dropped)
+# (2) Select Baseline / Follow up only
+data = data[data['visit'].values == ["Follow Up"]] # Selecting BASELINE/FU visits only
+data.drop_duplicates(subset="subjid", inplace=True, keep="first")
 
-# (2) Subset data
-# > Returns features specified in features_list (selected features + covariates + hdcat) and drops na
-print("data(pre subset).shape:", df.shape)
-data = subset(df, features_list)
+# (3) Get rid of medical and demographic features (around 80 columns)
+print("data(pre delete_med_dem).shape:", data.shape)
+data = delete_med_dem(data)
+print("data(post delete_med_dem).shape:", data.shape)
 
 # Make all values numeric
-for column in data:
+for column in data.iloc[:, 1:]: # Except subject id - col 0
     data[column] = pd.to_numeric(data[column])
 
-# AD HOC FIT FIXES
-# data = data[data["brady"] < 5]
-data = data[data["mmsetotal"] > -250] # WORKS
-data = data[data["mmsetotal"] < 7]
-# for column in data:
-#     data = data[data[column] < 40]
-# data = data[data["prosupr"] < 8] # WORKS
-# data = data[data["sacinitv"] < 5]
-# data = data[data["sdmt1"] < 2] # LOST CAUSE
-print("data(post subset).shape:", data.shape) # Prints data normally
+
+## (4) Normality test
+# data_noNan = missing_vals(data, print_miss_counts=True, method="mean")
+# for column in data_noNan.iloc[:, 1:]: # skipping subjid
+#     title = column
+#     column = data_noNan[column]
+#     # print(column.head)
+#     # print("column.shape", column.shape)
+#     # print("column.mean", column.mean)
+#     stat, p = scipy.stats.normaltest(column)
+#     if stat < 300:
+#         print(title, round(stat, 4), round(p,8))
 
 
-# (3) Covariate adjustment(+ Z-scoring if sustainType=ZScoreSustain)
+# (5) Feature selection
+# ttest_results = feature_selection_ttest(data)
+# wilcoxon_results = feature_selection_wilcoxon(data)
+# rf_importances = feature_selection_rf(data.iloc[:, 1:])
+
+
+# # ------------------ Pete's hist (2/3) ------------------------------------------
+# df = data
+# tms = df[test_var].values
+# hist = []
+# labels = []
+# for i in np.unique(df['hdcat'].values):
+#     if np.isnan(tms[df['hdcat'].values==i]).all():
+#         continue
+#     hist.append(tms[df['hdcat'].values==i])
+#     labels.append(str(i))
+# plt.hist(hist,label=labels,stacked=True)
+# plt.yscale("log")
+# plt.xlabel(test_var)
+# plt.ylabel('Frequency')
+# plt.legend()
+# plt.show()
+# # ------------------------------------------------------------------------
+
+
+# (6) Features suset
+data = data[features_list]
+# data[data["hdcat"]==1].hist()
+
+# (7) Deal with missing values
+data = missing_vals(data, print_miss_counts=True, method="mean")
+# NOTE: if we drop NaNs (1) dystlue loses fit, (2) we need to cap swrt2 (see outliers funct)
+
+# -----------------------------------------------------------------
+
+# (8) Remove outliers
+# > Remove outliers 5*SDs from mean
+# (NEED TO DO OUTLIER REMOVAL ON EACH SUBJECT GROUP SEPARATELY THEN CONCATENATE)
+disease = data[data["hdcat"]==1]
+controls = data[data["hdcat"]==0]
+preman = data[data["hdcat"]==2]
+if sustainType == 'mixture_GMM' or sustainType == "mixture_KDE": # Include hdcat (a few extra steps for this)
+    feat = features_list[1:-3] # # 1 for subjid
+    feat.append(features_list[-1]) # Adding hdcat
+    # data_feat_cols = data.iloc[:, 0:6] # Getting features only (not covariates, subjid etc)
+    # pd.concat([data_feat_cols, data.iloc[:, -1]]) # Adding hdcat
+    print("\n","DISEASE")
+    disease = outlier_removal(disease, feat, sd_num=5) # 1 to skip subject id
+    print("\n","CONTROLS")
+    controls = outlier_removal(controls, feat, sd_num=5)  # 1 to skip subject id
+    print("\n","PREMAN")
+    preman = outlier_removal(preman, feat, sd_num=5)  # 1 to skip subject id
+    data = pd.concat([disease, controls, preman])
+
+    data = data[data["tfcscore"] < 60] # NEEDED if drop or mean NaNs
+    # data = data[data["swrt2"] < 80] # NEEDED if do drop NaNs
+    # NOTE: dystlue loses fit if drop NaNs
+
+elif sustainType == 'zscore': # Exclude hdcat.
+    data = outlier_removal(data, features_list[1:-3], sd_num=5) # 1 for subjID still in
+
+# ------------------ Pete's hist (3/3)------------------------------------------
+# df = data
+# tms = df[test_var].values
+# hist = []
+# labels = []
+# for i in np.unique(df['hdcat'].values):
+#     if np.isnan(tms[df['hdcat'].values==i]).all():
+#         continue
+#     hist.append(tms[df['hdcat'].values==i])
+#     labels.append(str(i))
+# plt.hist(hist,label=labels,stacked=True)
+# plt.yscale("log")
+# plt.xlabel(test_var)
+# plt.ylabel('Frequency')
+# plt.legend()
+# plt.show()
+# # # ------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------------------------------------------------
+# (9) Covariate adjustment(+ Z-scoring if sustainType=ZScoreSustain)
 # Regresses out covariates of predictors + if ZScoreSustain; (2) Finds mean and SD of features, (3) Takes Z scores, (4) Makes sure all Z scores are increasing
-data = covariate_adjustment(data, sustainType)
+# data = covariate_adjustment(data, sustainType, num_predictors)
+# # Check adjustment has worked - i.e., mean of each control biomarker == 0.
+# feat = 0
+# for column in data[data[:, -1] == 0].T:  # Check mean of each control biomarker now == 0 (means adjustment has worked)
+#     mean = np.mean(column)
+#     print("control mean, biomarker", feat, "=", np.around(mean, 4))
+#     feat = feat + 1
+
+# **** Do this if not doing covariate adjustemnt- to get rid of covariates ****
+data = pd.DataFrame(data)
+hdcat = data.iloc[:, -1]
+predictors = data.iloc[:, 1:len(features_list)-num_covars-1] # 1 to exclude subjid, 2 covariates and hdcat
+data = pd.concat([predictors, hdcat], axis=1)
+data = np.array(data)
+# ----------------------------------------------------------------------------------------------------------------------
 
 
+#------------- HISTS CHECK ------------------------
+# data_hist = pd.DataFrame(data)
+# data_hist[data_hist.iloc[:, -1] == 1].hist()
+# data_hist[data_hist.iloc[:, -1] == 0].hist()
+# print(motscore.value_counts())
+# -------------------------------------------------
 
-# (4) Remove outliers
-# > Count outliers
-# > Remove outliers 5*SDs from mean (do before pre-processing so outliers don't affect covariate adjustment and Z-scores?)
-if sustainType == 'mixture_GMM' or sustainType == "mixture_KDE": # Include hdcat
-    feat = features_list[0:-3]
-    feat.append(features_list[7])
-    data = outlier_removal(data[:,0:6], feat, sd_num=5, remove=True)
-elif sustainType == 'zscore': # Exclude hdcat
-    data = outlier_removal(data[:, 0:5], features_list[0:-3], sd_num=5, remove=True)
+# ---------(Counting analysis data for write-up)------------
+# Merge data to get data counts
+# data_merge = pd.merge(data, profile_df, on="subjid", how='left')
+# print(data_merge["hdcat"].value_counts(normalize=True)*100)
+# print(data_merge["sex"].value_counts(normalize=True)*100)
+# print(data_merge["region"].value_counts(normalize=True)*100)
+# print(data_merge["race"].value_counts(normalize=True)*100)
+# print(data_merge["caghigh"].value_counts(normalize=True)*100)
+# print(data_merge["caglow"].value_counts(normalize=True)*100)
+# # Num. baseline visits in total enroll_hd db
+# baseline = enroll_df[enroll_df["visit"]=="Baseline"]
+# print(baseline)
+# # Get rid of "subjid" column (no longer needed - was only needed for merge)
+# data = data.iloc[:, 1:]
+# # Getting rid of subjID column - no longer needed
+# data = data.iloc[:,1:]
+# ----------------------------------------------------
 
 
-# > Check dists
-# data = pd.DataFrame(data) # Converting to df so can use .hist()
-# data.hist(bins=100)
-# data = np.array(data) # Changing back for rest of prog
+# ------------------------end of pre-processing-------------------------------------------------------------------------
 
-# (5) RUN model using preprocessed data
+# (8) RUN model using preprocessed data
 def main(data, sustainType):
     # cross-validation
     validate = True
     N_folds = 10 # recommended 10
 
-    N = df.shape[1]  # number of biomarkers
-    M = df.shape[0]  # number of observations ( e.g. subjects )
+    if sustainType == "mixture_KDE" or "mixture_GMM":
+        N = data.shape[1]-1  # number of biomarkers - if kdemm - hdcat is still in data so we need to -1 to get num of biomarkers
+    if sustainType == "zscore":
+        N = data.shape[1]  # number of biomarkers
+
+    M = data.shape[0]  # number of observations ( e.g. subjects )
     # N_S_gt = 3  # number of ground truth subtypes
 
     N_startpoints = 25 # Number of starting points to use when fitting the subtypes hierarchichally. I'd suggest using 25.
@@ -194,69 +319,73 @@ def main(data, sustainType):
     # print("labels[index_control] =", labels[index_control])
 
 
+
     if sustainType == 'mixture_GMM' or sustainType == "mixture_KDE":
 
-        # data.columns = ["motscore", "tfcscore", "mmsetotal", "irascore", "exfscore", "hdcat"]
-        # print("data(2):", data)
-
-        case_control_all = data[data[:, 5] != 2]
-        print("case_control_all.shape", case_control_all.shape)
-        labels_case_control = case_control_all[:, 5]
+        case_control_all = data[data[:, -1] != 2]
+        labels_case_control = case_control_all[:, -1]
+        data_case_control = case_control_all[:, :-1]
+        data = data_case_control  # Changing back to np
+        print("data.shape",data.shape)
         print("labels_case_control.shape", labels_case_control.shape)
-        # data_case_control = case_control_all[:, range(1,3)]
-        data_case_control = case_control_all[:, :5]
-        print("data_case_control.shape", data_case_control.shape)
 
-        data = data_case_control
+        # N = data.shape[1]
 
-        ## 2 VARS
-        # labels = data[:, 5]
-        # data = data[:, 1:5]
-        N = data.shape[1]
-        # # data.hist()
-        #
         SuStaInLabels = []
         SuStaInStageLabels = []
-        # ['Biomarker 0', 'Biomarker 1', ..., 'Biomarker N' ]
-        #
-        for i in range(N):
-            SuStaInLabels.append('Biomarker ' + str(i))
 
-        # print("data(3)", data)
+        # ['Biomarker 0', 'Biomarker 1', ..., 'Biomarker N' ]
+        # for i in range(N):
+        #     SuStaInLabels.append('Biomarker ' + str(i))
+
+        for i in features_list[1:num_predictors+1]:
+            SuStaInLabels.append(i)
+
+        print("SuStaInLabels", SuStaInLabels)
+
+    # FIT THE BIOMARKER DATA - FINDING A "CLUSTER" FOR DISEASE AND A "CLUSTER" FOR CONTROLS
+    # I.e., Estimate the parameters (mean and variance) of the Gaussian (GMM) or estimate the non-parametric (KDE)
         if sustainType == "mixture_GMM":
-            mixtures = fit_all_gmm_models(data, data[:, 5])
+            mixtures = fit_all_gmm_models(data, labels_case_control.astype(int))
         elif sustainType == "mixture_KDE":
             # mixtures = fit_all_kde_models(data, labels.astype(int)) # PROBLEM: Crashed line 61 in utils.py
             mixtures = fit_all_kde_models(data, labels_case_control.astype(int)) # PROBLEM: Crashed line 61 in utils.py
 
         outDir = "/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD/SuStaIn-master/"
-        fig, ax = plotting.mixture_model_grid(data_case_control, labels_case_control, mixtures, SuStaInLabels)
+        fig, ax = plotting.mixture_model_grid(data, labels_case_control, mixtures, SuStaInLabels)
         fig.show()
         fig.savefig(os.path.join(outDir, 'kde_fits.png')) #outDir should be output_folder
 
-        L_yes = np.zeros(data.shape)
+        L_yes = np.zeros(data.shape) # CHANGE? Why both .zeros?
         L_no = np.zeros(data.shape)
 
-        for i in range(N): # Calculating data likelihood for each biomarker, N
+        # Calculating data likelihood for each biomarker, N:
+        for i in range(N):
         # BREAKING mixtures LIKELIHOODS INTO NORMAL AND ABNORMAL (based on likelihoods)
         # for i in range(1,3):
             if sustainType == "mixture_GMM":
                 L_no[:, i], L_yes[:, i] = mixtures[i].pdf(None, data[:, i])
             elif sustainType == "mixture_KDE":
                 L_no[:, i], L_yes[:, i] = mixtures[i].pdf(data[:, i].reshape(-1, 1)) # CALCULATING PDF
-                # L_yes = likelihoods for abnormal
+                # L_yes meeans likelihoods for abnormal
 
-        # RUNNING SUSTAIN ON OUTPUT OF KDEMM
+        print("L_yes.shape", L_yes.shape)
+        print("L_no.shape", L_no.shape)
+        print("N_startpoints", N_startpoints)
+        print("N_S_max", N_S_max)
         sustain = MixtureSustain(L_yes, L_no, SuStaInLabels, N_startpoints, N_S_max, N_iterations_MCMC, output_folder,
                                  dataset_name, use_parallel_startpoints=True)
 
     elif sustainType == 'zscore':
 
+
         sustain = ZscoreSustain(data, Z_vals, Z_max, SuStaInLabels, N_startpoints, N_S_max, N_iterations_MCMC,
                                 output_folder, dataset_name, False)
 
+    # RUNNING SUSTAIN ON OUTPUT OF KDEMM / GMM
     sustain.run_sustain_algorithm() # PROBLEM_Crashes line 239 in MixtureSustain.py
 
+    # CROSS VALIDATION
     if validate: # DO CROSS VALIDATION. A way of optimising for number of clusters.
         # Output here (cross_validated_sequences) will be messier. Check there is differences between 1 cluster, 2 clusters etc.
         test_idxs = []

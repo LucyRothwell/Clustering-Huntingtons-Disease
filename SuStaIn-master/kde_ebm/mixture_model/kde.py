@@ -17,10 +17,7 @@ class KDEMM(object):
         sorted_idx = X.argsort(axis=0).flatten()
         kde_values = X.copy()[sorted_idx]
         kde_labels = y.copy()[sorted_idx]
-        # print("type(y):", type(y))
-        # print("y.dtype:", y.dtype)
         y.dtype = int
-        # print("y.dtype:", y.dtype)
         y = y.astype(int)
         bin_counts = np.bincount(y).astype(float) # * PROBLEM: TypeError: Cannot cast array data from dtype('float64')
         # print("bin_counts =", bin_counts)           # to dtype('int64') according to the rule 'safe'

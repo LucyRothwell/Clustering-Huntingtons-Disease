@@ -104,7 +104,6 @@ class AbstractSustain(ABC):
 
         fig0, ax0                           = plt.subplots()
         for s in range(self.N_S_max):
-
             pickle_filename_s               = self.output_folder + '/' + self.dataset_name + '_subtype' + str(s) + '.pickle'
             pickle_filepath                 = Path(pickle_filename_s)
             print("pickle_filepath", pickle_filepath)
@@ -160,6 +159,7 @@ class AbstractSustain(ABC):
             prob_subtype,           \
             prob_stage,             \
             prob_subtype_stage               = self.subtype_and_stage_individuals(self.__sustainData, samples_sequence, samples_f, N_samples)   #self.subtype_and_stage_individuals(self.__data, samples_sequence, samples_f, N_samples)
+
             if not pickle_filepath.exists():
 
                 if not os.path.exists(self.output_folder):
@@ -342,7 +342,7 @@ class AbstractSustain(ABC):
 
         print("CVIC for each subtype model: " + str(CVIC))
 
-        return CVIC, loglike_matrix
+        return loglike_matrix, CVIC
 
 
     def combine_cross_validated_sequences(self, N_subtypes, N_folds):
