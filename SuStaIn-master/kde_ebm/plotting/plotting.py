@@ -42,7 +42,8 @@ def mixture_model_grid(X, y, mixtures,
                                           density=True,
                                           color=hist_c,
                                           alpha=0.7,
-                                          stacked=True)
+                                          stacked=True,
+                                          bins=100)
         linspace = np.linspace(bio_X.min(), bio_X.max(), 100).reshape(-1, 1)
         if isinstance(mixtures[i], ParametricMM):
             controls_score, patholog_score = mixtures[i].pdf(mixtures[i].theta,
@@ -124,12 +125,14 @@ def stage_histogram(stages, y, max_stage=None, class_names=None):
     if max_stage is None:
         max_stage = stages.max()
     hist_c = colors[:2]
+    print("hi")
     n, bins, patch = ax.hist(hist_dat,
                              label=class_names,
                              density=True,
                              color=hist_c,
                              stacked=False,
                              bins=max_stage+1)
+                             # bins = 100)
     ax.legend(loc=0, fontsize=20)
 
     idxs = np.arange(max_stage+1)
