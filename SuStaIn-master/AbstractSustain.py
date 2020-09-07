@@ -137,7 +137,6 @@ class AbstractSustain(ABC):
                 ml_f_mat_EM,        \
                 ml_likelihood_mat_EM        = self._estimate_ml_sustain_model_nplus1_clusters(self.__sustainData, ml_sequence_prev_EM, ml_f_prev_EM) #self.__estimate_ml_sustain_model_nplus1_clusters(self.__data, ml_sequence_prev_EM, ml_f_prev_EM)
                 # PROBLEM ^
-                # print(ml_likelihood_mat_EM) # lucy*** added
                 seq_init                    = ml_sequence_EM
                 f_init                      = ml_f_EM
 
@@ -151,7 +150,7 @@ class AbstractSustain(ABC):
                 ml_f_prev_EM                = ml_f_EM
 
             # max like subtype and stage / subject
-            N_samples                       = 1000
+            N_samples                       = 1000 # CHANGE? CMCMC related?
             ml_subtype,             \
             prob_ml_subtype,        \
             ml_stage,               \
@@ -314,11 +313,15 @@ class AbstractSustain(ABC):
         import pylab
         df_loglike                                 = pd.DataFrame(data = loglike_matrix, columns = ["s_" + str(i) for i in range(self.N_S_max)])
         df_loglike.boxplot(grid=False)
+        y_arr_test = np.empty((1,10)).T # Lucy added
         for i in range(self.N_S_max):
             y                                   = df_loglike[["s_" + str(i)]]
+            print("y", y)
             x                                   = np.random.normal(1+i, 0.04, size=len(y)) # Add some random "jitter" to the x-axis
-            pylab.plot(x, y, 'r.', alpha=0.2)
+            y_arr_test = np.append(y_arr_test, y, axis=1) # Lucy added
+            # pylab.plot(x, y, 'r.', alpha=0.2) # Commended out as was messing up Group 2 plot (Peter)
 
+        print("y_arr_test =", y_arr_test)
         CVIC = np.zeros(self.N_S_max)
 
         for s in range(self.N_S_max):
@@ -340,9 +343,9 @@ class AbstractSustain(ABC):
 
             CVIC[s] = -2*sum(np.log(mean_likelihood_subj_test_cval))
 
-        print("CVIC for each subtype model: " + str(CVIC))
+        # print("CVIC for each subtype model: " + str(CVIC))
 
-        return loglike_matrix, CVIC
+        return loglike_matrix, CVIC, y_arr_test # Lucy ass y_arr_test
 
 
     def combine_cross_validated_sequences(self, N_subtypes, N_folds):
@@ -464,7 +467,6 @@ class AbstractSustain(ABC):
             total_prob_stage,   \
             total_prob_subtype, \
             total_prob_subtype_stage        = self._calculate_likelihood(sustainData, this_S, this_f)
-
             total_prob_subtype              = total_prob_subtype.reshape(len(total_prob_subtype), N_S)
             total_prob_subtype_norm         = total_prob_subtype        / np.tile(np.sum(total_prob_subtype, 1).reshape(len(total_prob_subtype), 1),        (1, N_S))
             total_prob_stage_norm           = total_prob_stage          / np.tile(np.sum(total_prob_stage, 1).reshape(len(total_prob_stage), 1),          (1, nStages + 1)) #removed total_prob_subtype
