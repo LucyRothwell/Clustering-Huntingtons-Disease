@@ -1,5 +1,5 @@
 # Clustering-Huntingtons-Disease
-Subtyping Huntington's Disease to Improve Clinical Trials: Unsupervised Machine Learning with Clinical &amp; Genetic Data. (2020)
+Identifying Progression-based Subtypes of Huntington's Disease: Unsupervised Learning with Clinical Data (2020)
 
 My MSc Computer Science dissertation research project. 
 
