@@ -1,5 +1,5 @@
 # Clustering Huntingtons Disease
-A research project subtyping Huntington's Disease to improve clinical trial selection: Unsupervised machine learning with clinical &amp; genetic data. (2020)
+A research project aiming to subtype Huntington's Disease to improve clinical trial cohort selection: Unsupervised machine learning with clinical & genetic data. (2020)
 
 **Objective**
 The main objective of this study was to determine whether data-driven subtypes of
