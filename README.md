@@ -3,8 +3,6 @@ Subtyping Huntington's Disease to Improve Clinical Trials: Unsupervised Machine 
 
 My MSc Computer Science dissertation research project. 
 
-Abstract
-
 **Objective**
 
 The main objective of this study was to determine whether data-driven subtypes of Huntington's Disease (HD) exist based on motor, cognitive and psychiatric clinical symptoms. A secondary objective was to test whether symptomatic variance existed independently of the biomarker, CAG repeat length.
