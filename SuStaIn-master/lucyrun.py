@@ -558,7 +558,7 @@ print("--- %s seconds ---" % (time.time() - start_time))
 #### (15) Find subtype and stage of an individual NEW DATA
 # > *** new_data - should be with patient ID of someone with 6-7 VISITS ***
 
-new_data_ind = new_data[0, :]
+new_data_ind = new_data[0, :] # new_data_ind created at beginning - held out of training set
 new_data_ind = new_data_ind.reshape(1, -1)
 
 L_yes_new = np.zeros(new_data_ind.shape)  # ...the probability that each value in dataframe is DISEASE (across all biomarkers)
@@ -570,7 +570,7 @@ for i in range(N):  # For each biomarker
         L_no_new[:, i], L_yes_new[:, i] = mixtures[i].pdf(None, new_data_ind[i])  # pdf() = function in kde_ebm. Returns controls_score, patholog_score (probability values)
     elif sustainType == "mixture_KDE":
         L_no_new[:, i], L_yes_new[:, i] = mixtures[i].pdf(new_data_ind[:, i].reshape(1, -1)) # Add .reshape(-1, 1) if using array  # CALCULATING PDF
-# (?) Use same "mixtures" as in main()?
+# Uses same "mixtures" as in main()
 
 # samples_sequence = returned from runsustain() in MixtureS.
 # samples_f = Returned from cross_validate_sustain_model() >> returned from _estimate_uncertainty_sustain_model() in AbstractSustain.
