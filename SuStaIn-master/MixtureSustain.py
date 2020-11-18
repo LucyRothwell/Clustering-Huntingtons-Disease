@@ -18,27 +18,27 @@ from AbstractSustain import AbstractSustain
 
 #*******************************************
 #The data structure class for MixtureSustain. It holds the positive/negative likelihoods that get passed around and re-indexed in places.
-class MixtureSustainData(AbstractSustainData):
+class MixtureSustainData(AbstractSustainData): # Inherits from AbstractSustainData class
 
     def __init__(self, L_yes, L_no, numStages):
 
-        assert(L_yes.shape[0] == L_no.shape[0] and L_yes.shape[1] == L_no.shape[1])
+        assert(L_yes.shape [0] == L_no.shape [0] and L_yes.shape [1] == L_no.shape [1])
 
         self.L_yes          = L_yes
         self.L_no           = L_no
         self.__numStages    = numStages
 
     def getNumSamples(self):
-        return self.L_yes.shape[0]
+        return self.L_yes.shape [0]
 
     def getNumBiomarkers(self):
-        return self.L_no.shape[1]
+        return self.L_no.shape [1]
 
     def getNumStages(self):
         return self.__numStages
 
     def reindex(self, index):
-        return MixtureSustainData(self.L_yes[index,], self.L_no[index,], self.__numStages)
+        return MixtureSustainData(self.L_yes [index,], self.L_no [index,], self.__numStages)
 
 #*******************************************
 #An implementation of the AbstractSustain class with z-score based events
@@ -68,15 +68,15 @@ class MixtureSustain(AbstractSustain):
         #   dataset_name                - for naming pickle files
         #   use_parallel_startpoints    - boolean for whether or not to parallelize the maximum likelihood loop
 
-        N                               =  L_yes.shape[1] # number of biomarkers
+        N                               =  L_yes.shape [1] # number of biomarkers
         assert (len(biomarker_labels) == N), "number of labels should match number of biomarkers"
 
         self.biomarker_labels           = biomarker_labels
 
-        numStages                       = L_yes.shape[1]    #number of stages == number of biomarkers here
+        numStages                       = L_yes.shape [1]    #number of stages == number of biomarkers here
         self.__sustainData              = MixtureSustainData(L_yes, L_no, numStages)
 
-        super().__init__(self.__sustainData,
+        super().__init__(self.__sustainData, # What does this do?
                          N_startpoints,
                          N_S_max,
                          N_iterations_MCMC,
@@ -119,25 +119,25 @@ class MixtureSustain(AbstractSustain):
         arange_Np1                          = np.arange(0, N+1)
 
         p_perm_k                            = np.zeros((M, N+1))
-
         #**** THIS VERSION IS ROUGHLY 10x FASTER THAN THE ONE BELOW
-        cp_yes                              = np.cumprod(sustainData.L_yes[:, S_int],        1)
-        cp_no                               = np.cumprod(sustainData.L_no[:,  S_int[::-1]],  1)   #do the cumulative product from the end of the sequence
+
+        cp_yes                              = np.cumprod(sustainData.L_yes [:, S_int],        1)
+        cp_no                               = np.cumprod(sustainData.L_no [:,  S_int [::-1]],  1)   #do the cumulative product from the end of the sequence
         for i in arange_Np1:
 
             if i == 0:
-                p_perm_k[:, i]              = 1 / (N + 1) * cp_no[:,N-1]
+                p_perm_k [:, i]              = 1 / (N + 1) * cp_no [:,N-1]
             elif i == N:
-                p_perm_k[:, i]              = 1 / (N + 1) * cp_yes[:,N-1]
+                p_perm_k [:, i]              = 1 / (N + 1) * cp_yes [:,N-1]
             else:
-                p_perm_k[:, i]              = 1 / (N + 1) * cp_yes[:,i-1] * cp_no[:,N-i-1]
+                p_perm_k [:, i]              = 1 / (N + 1) * cp_yes [:,i-1] * cp_no [:,N-i-1]
 
         #**** STRAIGHTFORWARD VERSION - MUCH SLOWER
         # for i in arange_Np1: #range(N+1):
-        #     occur                           = S_int[arange_Np1[0:i]]    #S_int[range(0, i, 1)] #S_int[0:(i - 1)]
-        #     notoccur                        = S_int[i:]
+        #     occur                           = S_int [arange_Np1 [0:i]]    #S_int [range(0, i, 1)] #S_int [0:(i - 1)]
+        #     notoccur                        = S_int [i:]
         #
-        #     p_perm_k[:, i]                  = 1 / (N + 1) * np.prod(sustainData.L_yes[:, occur], 1) * np.prod(sustainData.L_no[:, notoccur], 1)
+        #     p_perm_k [:, i]                  = 1 / (N + 1) * np.prod(sustainData.L_yes [:, occur], 1) * np.prod(sustainData.L_no [:, notoccur], 1)
 
         return p_perm_k
 
@@ -146,7 +146,7 @@ class MixtureSustain(AbstractSustain):
         # Optimise the parameters of the SuStaIn model
 
         M                                   = sustainData.getNumSamples()
-        N_S                                 = S_init.shape[0]
+        N_S                                 = S_init.shape [0]
         N                                   = sustainData.getNumStages()
 
         S_opt                               = S_init.copy()  # have to copy or changes will be passed to S_init
@@ -156,7 +156,7 @@ class MixtureSustain(AbstractSustain):
         p_perm_k                            = np.zeros((M, N + 1, N_S))
 
         for s in range(N_S):
-            p_perm_k[:, :, s]               = self._calculate_likelihood_stage(sustainData, S_opt[s])
+            p_perm_k [:, :, s]               = self._calculate_likelihood_stage(sustainData, S_opt [s])
 
         p_perm_k_weighted                   = p_perm_k * f_val_mat
         p_perm_k_norm                       = p_perm_k_weighted / np.tile(np.sum(np.sum(p_perm_k_weighted, 1), 1).reshape(M, 1, 1), (1, N + 1, N_S))  # the second summation axis is different to Matlab version
@@ -168,46 +168,46 @@ class MixtureSustain(AbstractSustain):
         for s in order_seq:
             order_bio                       = MixtureSustain.randperm_local(N) #np.random.permutation(N)  # this will produce different random numbers to Matlab
             for i in order_bio:
-                current_sequence            = S_opt[s]
+                current_sequence            = S_opt [s]
                 assert(len(current_sequence)==N)
-                current_location            = np.array([0] * N)
-                current_location[current_sequence.astype(int)] = np.arange(N)
+                current_location            = np.array( [0] * N)
+                current_location [current_sequence.astype(int)] = np.arange(N)
 
                 selected_event              = i
 
-                move_event_from             = current_location[selected_event]
+                move_event_from             = current_location [selected_event]
 
                 possible_positions          = np.arange(N)
                 possible_sequences          = np.zeros((len(possible_positions), N))
                 possible_likelihood         = np.zeros((len(possible_positions), 1))
                 possible_p_perm_k           = np.zeros((M, N + 1, len(possible_positions)))
                 for index in range(len(possible_positions)):
-                    current_sequence        = S_opt[s]
+                    current_sequence        = S_opt [s]
 
                     #choose a position in the sequence to move an event to
-                    move_event_to           = possible_positions[index]
+                    move_event_to           = possible_positions [index]
 
                     #move this event in its new position
-                    current_sequence        = np.delete(current_sequence, move_event_from, 0)  # this is different to the Matlab version, which call current_sequence(move_event_from) = []
-                    new_sequence            = np.concatenate([current_sequence[np.arange(move_event_to)], [selected_event], current_sequence[np.arange(move_event_to, N - 1)]])
-                    possible_sequences[index, :] = new_sequence
+                    current_sequence        = np.delete(current_sequence, move_event_from, 0)  # this is different to the Matlab version, which call current_sequence(move_event_from) =  []
+                    new_sequence            = np.concatenate( [current_sequence [np.arange(move_event_to)],  [selected_event], current_sequence [np.arange(move_event_to, N - 1)]])
+                    possible_sequences [index, :] = new_sequence
 
-                    possible_p_perm_k[:, :, index] = self._calculate_likelihood_stage(sustainData, new_sequence)
+                    possible_p_perm_k [:, :, index] = self._calculate_likelihood_stage(sustainData, new_sequence)
 
-                    p_perm_k[:, :, s]       = possible_p_perm_k[:, :, index]
+                    p_perm_k [:, :, s]       = possible_p_perm_k [:, :, index]
                     total_prob_stage        = np.sum(p_perm_k * f_val_mat, 2)
                     total_prob_subj         = np.sum(total_prob_stage, 1)
-                    possible_likelihood[index] = sum(np.log(total_prob_subj + 1e-250))
+                    possible_likelihood [index] = sum(np.log(total_prob_subj + 1e-250))
 
-                possible_likelihood         = possible_likelihood.reshape(possible_likelihood.shape[0])
+                possible_likelihood         = possible_likelihood.reshape(possible_likelihood.shape [0])
                 max_likelihood              = max(possible_likelihood)
-                this_S                      = possible_sequences[possible_likelihood == max_likelihood, :]
-                this_S                      = this_S[0, :]
-                S_opt[s]                    = this_S
-                this_p_perm_k               = possible_p_perm_k[:, :, possible_likelihood == max_likelihood]
-                p_perm_k[:, :, s]           = this_p_perm_k[:, :, 0]
+                this_S                      = possible_sequences [possible_likelihood == max_likelihood, :]
+                this_S                      = this_S [0, :]
+                S_opt [s]                    = this_S
+                this_p_perm_k               = possible_p_perm_k [:, :, possible_likelihood == max_likelihood]
+                p_perm_k [:, :, s]           = this_p_perm_k [:, :, 0]
 
-            S_opt[s]                        = this_S
+            S_opt [s]                        = this_S
 
         p_perm_k_weighted                   = p_perm_k * f_val_mat
         p_perm_k_norm                       = p_perm_k_weighted / np.tile(np.sum(np.sum(p_perm_k_weighted, 1), 1).reshape(M, 1, 1), (1, N + 1, N_S))  # the second summation axis is different to Matlab version
@@ -229,16 +229,16 @@ class MixtureSustain(AbstractSustain):
 
         M                                   = sustainData.getNumSamples()
         N                                   = sustainData.getNumStages()
-        N_S                                 = seq_init.shape[0]
+        N_S                                 = seq_init.shape [0]
 
         if isinstance(f_sigma, float):  # FIXME: hack to enable multiplication
-            f_sigma                         = np.array([f_sigma])
+            f_sigma                         = np.array( [f_sigma])
 
         samples_sequence                    = np.zeros((N_S, N, n_iterations))
         samples_f                           = np.zeros((N_S, n_iterations))
         samples_likelihood                  = np.zeros((n_iterations, 1))
-        samples_sequence[:, :, 0]           = seq_init  # don't need to copy as we don't write to 0 index
-        samples_f[:, 0]                     = f_init
+        samples_sequence [:, :, 0]           = seq_init  # don't need to copy as we don't write to 0 index
+        samples_f [:, 0]                     = f_init
 
         for i in range(n_iterations):
             if i % (n_iterations / 10) == 0:
@@ -248,22 +248,22 @@ class MixtureSustain(AbstractSustain):
                 for s in seq_order:
                     move_event_from         = int(np.ceil(N * np.random.rand())) - 1
 
-                    current_sequence        = samples_sequence[s, :, i - 1]
+                    current_sequence        = samples_sequence [s, :, i - 1]
 
-                    current_location        = np.array([0] * N)
-                    current_location[current_sequence.astype(int)] = np.arange(N)
+                    current_location        = np.array( [0] * N)
+                    current_location [current_sequence.astype(int)] = np.arange(N)
 
                     #select an event in the sequence to move
-                    selected_event          = int(current_sequence[move_event_from])
+                    selected_event          = int(current_sequence [move_event_from])
 
                     possible_positions      = np.arange(N)
 
                     distance                = possible_positions - move_event_from
 
-                    if isinstance(seq_sigma, int):  # FIXME: change to float       ##if ((seq_sigma.shape[0]==1) + (seq_sigma.shape[1]==1)) == 2:
+                    if isinstance(seq_sigma, int):  # FIXME: change to float       ##if ((seq_sigma.shape [0]==1) + (seq_sigma.shape [1]==1)) == 2:
                         this_seq_sigma      = seq_sigma
                     else:
-                        this_seq_sigma      = seq_sigma[s, selected_event]
+                        this_seq_sigma      = seq_sigma [s, selected_event]
 
                     # use own normal PDF because stats.norm is slow
                     weight                  = AbstractSustain.calc_coeff(this_seq_sigma) * AbstractSustain.calc_exp(distance, 0., this_seq_sigma)
@@ -273,30 +273,30 @@ class MixtureSustain(AbstractSustain):
                     #index                   = 0
                     index                   = np.random.choice(range(len(possible_positions)), 1, replace=True, p=weight)  # FIXME: difficult to check this because random.choice is different to Matlab randsample
 
-                    move_event_to           = possible_positions[index]
+                    move_event_to           = possible_positions [index]
 
                     current_sequence        = np.delete(current_sequence, move_event_from, 0)
-                    new_sequence            = np.concatenate([current_sequence[np.arange(move_event_to)], [selected_event], current_sequence[np.arange(move_event_to, N - 1)]])
-                    samples_sequence[s, :, i] = new_sequence
+                    new_sequence            = np.concatenate( [current_sequence [np.arange(move_event_to)],  [selected_event], current_sequence [np.arange(move_event_to, N - 1)]])
+                    samples_sequence [s, :, i] = new_sequence
 
-                new_f                       = samples_f[:, i - 1] + f_sigma * np.random.randn()
+                new_f                       = samples_f [:, i - 1] + f_sigma * np.random.randn()
                 # TEMP: MATLAB comparison
-                #new_f                       = samples_f[:, i - 1] + f_sigma * stats.norm.ppf(np.random.rand(1,N_S))
+                #new_f                       = samples_f [:, i - 1] + f_sigma * stats.norm.ppf(np.random.rand(1,N_S))
 
                 new_f                       = (np.fabs(new_f) / np.sum(np.fabs(new_f)))
-                samples_f[:, i]             = new_f
-            S                               = samples_sequence[:, :, i]
+                samples_f [:, i]             = new_f
+            S                               = samples_sequence [:, :, i]
 
-            #f                               = samples_f[:, i]
+            #f                               = samples_f [:, i]
             #likelihood_sample, _, _, _, _   = self._calculate_likelihood(sustainData, S, f)
 
             p_perm_k                        = np.zeros((M, N+1, N_S))
             for s in range(N_S):
-                p_perm_k[:,:,s]             = self._calculate_likelihood_stage(sustainData, S[s,:])
+                p_perm_k [:,:,s]             = self._calculate_likelihood_stage(sustainData, S [s,:])
 
 
             #NOTE: added extra axes to get np.tile to work the same as Matlab's repmat in this 3D tiling
-            f_val_mat                       = np.tile(samples_f[:,i, np.newaxis, np.newaxis], (1, N+1, M))
+            f_val_mat                       = np.tile(samples_f [:,i, np.newaxis, np.newaxis], (1, N+1, M))
             f_val_mat                       = np.transpose(f_val_mat, (2, 1, 0))
 
             total_prob_stage                = np.sum(p_perm_k * f_val_mat, 2)
@@ -304,35 +304,35 @@ class MixtureSustain(AbstractSustain):
 
             likelihood_sample               = sum(np.log(total_prob_subj + 1e-250))
 
-            samples_likelihood[i]           = likelihood_sample
+            samples_likelihood [i]           = likelihood_sample
 
             if i > 0:
-                ratio                           = np.exp(samples_likelihood[i] - samples_likelihood[i - 1])
+                ratio                           = np.exp(samples_likelihood [i] - samples_likelihood [i - 1])
                 if ratio < np.random.rand():
-                    samples_likelihood[i]       = samples_likelihood[i - 1]
-                    samples_sequence[:, :, i]   = samples_sequence[:, :, i - 1]
-                    samples_f[:, i]             = samples_f[:, i - 1]
+                    samples_likelihood [i]       = samples_likelihood [i - 1]
+                    samples_sequence [:, :, i]   = samples_sequence [:, :, i - 1]
+                    samples_f [:, i]             = samples_f [:, i - 1]
 
         perm_index                          = np.where(samples_likelihood == max(samples_likelihood))
-        perm_index                          = perm_index[0][0]
+        perm_index                          = perm_index [0] [0]
         ml_likelihood                       = max(samples_likelihood)
-        ml_sequence                         = samples_sequence[:, :, perm_index]
-        ml_f                                = samples_f[:, perm_index]
+        ml_sequence                         = samples_sequence [:, :, perm_index]
+        ml_f                                = samples_f [:, perm_index]
 
         return ml_sequence, ml_f, ml_likelihood, samples_sequence, samples_f, samples_likelihood
 
     def _plot_sustain_model(self, samples_sequence, samples_f, n_samples, cval=False, plot_order=None):
 
         temp_mean_f                         = np.mean(samples_f, 1)
-        vals                                = np.sort(temp_mean_f)[::-1]
-        vals                                = np.array([np.round(x * 100.) for x in vals]) / 100.
-        ix                                  = np.argsort(temp_mean_f)[::-1]
+        vals                                = np.sort(temp_mean_f) [::-1]
+        vals                                = np.array( [np.round(x * 100.) for x in vals]) / 100.
+        ix                                  = np.argsort(temp_mean_f) [::-1]
 
 
-        N_S                                 = samples_sequence.shape[0]
+        N_S                                 = samples_sequence.shape [0]
         N_bio                               = len(self.biomarker_labels)
 
-        N_stages                            = samples_sequence.shape[1]
+        N_stages                            = samples_sequence.shape [1]
 
         #confus_matrix_plotting              = zeros(size(samples_sequence, 2), size(samples_sequence, 2), size(samples_sequence, 1));
         confus_matrix_plotting              = np.zeros((N_stages, N_stages, N_S))
@@ -343,44 +343,44 @@ class MixtureSustain(AbstractSustain):
             fig, ax                         = plt.subplots()
 
         if plot_order is None:
-            plot_order                      = samples_sequence[ix[0], :, samples_sequence.shape[2]-1].astype(int)
-        biomarker_labels_plot_order         = [self.biomarker_labels[i].replace('_', ' ') for i in plot_order]
+            plot_order                      = samples_sequence [ix [0], :, samples_sequence.shape [2]-1].astype(int)
+        biomarker_labels_plot_order         =  [self.biomarker_labels [i].replace('_', ' ') for i in plot_order]
 
         for i in range(N_S):
-            this_samples_sequence           = np.squeeze(samples_sequence[ix[i], :, :]).T
+            this_samples_sequence           = np.squeeze(samples_sequence [ix [i], :, :]).T
 
-            N                               = this_samples_sequence.shape[1]
+            N                               = this_samples_sequence.shape [1]
 
             confus_matrix                   = np.zeros((N, N))
             for j in range(N):
-                confus_matrix[j, :]         = sum(this_samples_sequence == j)
+                confus_matrix [j, :]         = sum(this_samples_sequence == j)
             confus_matrix                   /= float(max(this_samples_sequence.shape))
 
-            out_mat_i                       = np.tile(1 - confus_matrix[plot_order,:].reshape(N, N, 1), (1,1,3))
+            out_mat_i                       = np.tile(1 - confus_matrix [plot_order,:].reshape(N, N, 1), (1,1,3))
 
-            #this_colour_matrix[:, :, alter_level] = np.tile(this_confus_matrix[markers, :].reshape(N_bio, N, 1), (1, 1, sum(alter_level)))
+            #this_colour_matrix [:, :, alter_level] = np.tile(this_confus_matrix [markers, :].reshape(N_bio, N, 1), (1, 1, sum(alter_level)))
 
             TITLE_FONT_SIZE                 = 8
             X_FONT_SIZE                     = 8
             Y_FONT_SIZE                     = 7 #10
             if N_S > 1:
-                ax[i].imshow(out_mat_i, interpolation='nearest')      #, cmap=plt.cm.Blues)
-                ax[i].set_xticks(np.arange(N))
-                ax[i].set_xticklabels(range(1, N+1), fontsize=X_FONT_SIZE) #rotation=45,
+                ax [i].imshow(out_mat_i, interpolation='nearest')      #, cmap=plt.cm.Blues)
+                ax [i].set_xticks(np.arange(N))
+                ax [i].set_xticklabels(range(1, N+1), fontsize=X_FONT_SIZE) #rotation=45,
 
-                ax[i].set_yticks(np.arange(N_bio))
-                ax[i].set_yticklabels([]) #['']* N_bio)
+                ax [i].set_yticks(np.arange(N_bio))
+                ax [i].set_yticklabels( []) # ['']* N_bio)
                 if i == 0:
-                    ax[i].set_yticklabels(np.array(biomarker_labels_plot_order, dtype='object'), ha='right', fontsize=Y_FONT_SIZE)      #rotation=30, ha='right', rotation_mode='anchor'
-                    for tick in ax[i].yaxis.get_major_ticks():
+                    ax [i].set_yticklabels(np.array(biomarker_labels_plot_order, dtype='object'), ha='right', fontsize=Y_FONT_SIZE)      #rotation=30, ha='right', rotation_mode='anchor'
+                    for tick in ax [i].yaxis.get_major_ticks():
                         tick.label.set_color('black')
 
-                #ax[i].set_ylabel('Biomarker name') #, fontsize=20)
-                ax[i].set_xlabel('Event position', fontsize=X_FONT_SIZE)
-                ax[i].set_title('Group ' + str(i) + ' (f=' + str(vals[i])  + ', n=' + str(int(np.round(vals[i] * n_samples)))  + ')', fontsize=TITLE_FONT_SIZE)
+                #ax [i].set_ylabel('Biomarker name') #, fontsize=20)
+                ax [i].set_xlabel('Event position', fontsize=X_FONT_SIZE)
+                ax [i].set_title('Group ' + str(i) + ' (f=' + str(vals [i])  + ', n=' + str(int(np.round(vals [i] * n_samples)))  + ')', fontsize=TITLE_FONT_SIZE)
 
             else: #**** one subtype
-                ax.imshow(out_mat_i) #, interpolation='nearest')#, cmap=plt.cm.Blues) #[...,::-1]
+                ax.imshow(out_mat_i) #, interpolation='nearest')#, cmap=plt.cm.Blues) # [...,::-1]
                 ax.set_xticks(np.arange(N))
                 ax.set_xticklabels(range(1, N+1), fontsize=X_FONT_SIZE) #rotation=45,
 
@@ -392,7 +392,7 @@ class MixtureSustain(AbstractSustain):
 
                 #ax.set_ylabel('Biomarker name') #, fontsize=20)
                 ax.set_xlabel('Event position', fontsize=X_FONT_SIZE)
-                ax.set_title('Group ' + str(i) + ' (f=' + str(vals[i])  + ', n=' + str(int(np.round(vals[i] * n_samples)))  + ')', fontsize=TITLE_FONT_SIZE)
+                ax.set_title('Group ' + str(i) + ' (f=' + str(vals [i])  + ', n=' + str(int(np.round(vals [i] * n_samples)))  + ')', fontsize=TITLE_FONT_SIZE)
 
         plt.tight_layout()
         if cval:
@@ -407,11 +407,17 @@ class MixtureSustain(AbstractSustain):
         assert numStages_new == self.__sustainData.getNumStages(), "Number of stages in new data should be same as in training data"
 
         sustainData_newData             = MixtureSustainData(L_yes_new, L_no_new, numStages_new)
-
-        ml_subtype,         \
-        prob_ml_subtype,    \
-        ml_stage,           \
-        prob_ml_stage                   = self.subtype_and_stage_individuals(sustainData_newData, samples_sequence, samples_f, N_samples)
+        # ml_subtype,         \
+        # prob_ml_subtype,    \
+        # ml_stage,           \
+        # prob_ml_stage                   = # Lucy changed this as had error on function call line 7 rows below v:  "ValueError: too many values to unpack (expected 4)"
+        ml_subtype,             \
+        prob_ml_subtype,        \
+        ml_stage,               \
+        prob_ml_stage,          \
+        prob_subtype,           \
+        prob_stage,             \
+        prob_subtype_stage              = self.subtype_and_stage_individuals(sustainData_newData, samples_sequence, samples_f, N_samples)
 
         return ml_subtype, prob_ml_subtype, ml_stage, prob_ml_stage
 

@@ -162,7 +162,7 @@ remove =  ["studyid", "seq", "visit", "visdy", "visstat"] # Non-numerical featur
 visit_type = "Baseline" # We only want baseline visits
 sustainType = "mixture_KDE" # for use in functions later
 
-N_S_max = 6 # NUMBER OF SUBTYPES
+N_S_max = 4 # NUMBER OF SUBTYPES
 N_folds = 10 # NUMBER OF FOLDS FOR CROSS VALIDATION
 
 # ------------------------------------ PLOT - EXPLORE VARS ------------------------------------------------------------
@@ -560,6 +560,7 @@ print("--- %s seconds ---" % (time.time() - start_time))
 
 new_data_ind = new_data[0, :] # new_data_ind created at beginning - held out of training set
 new_data_ind = new_data_ind.reshape(1, -1)
+print("new_data_ind.shape =", new_data_ind.shape)
 
 L_yes_new = np.zeros(new_data_ind.shape)  # ...the probability that each value in dataframe is DISEASE (across all biomarkers)
 L_no_new = np.zeros(new_data_ind.shape)  # ...the probability that each value in dataframe is HEALTHY (across all biomarkers)
@@ -572,9 +573,16 @@ for i in range(N):  # For each biomarker
         L_no_new[:, i], L_yes_new[:, i] = mixtures[i].pdf(new_data_ind[:, i].reshape(1, -1)) # Add .reshape(-1, 1) if using array  # CALCULATING PDF
 # Uses same "mixtures" as in main()
 
+print("L_no_new.shape=", L_no_new.shape)
+print("L_yes_new.shape=", L_yes_new.shape)
+print("samples_sequence.shape=", samples_sequence.shape)
+print("samples_f.shape=", samples_f.shape)
+# sustain = MixtureSustain() object
+
 # samples_sequence = returned from runsustain() in MixtureS.
 # samples_f = Returned from cross_validate_sustain_model() >> returned from _estimate_uncertainty_sustain_model() in AbstractSustain.
 N_samples = 1000 # Taken from AbstractSustain line 153
+print("N_samples.shape=", N_samples)
 
 # ml_subtype_indN, prob_ml_subtype_indN, ml_stage_indN, prob_ml_stage_indN, prob_subtype_indN, prob_stage_indN, prob_subtype_stage_indN\
 ml_subtype, prob_ml_subtype, ml_stage, prob_ml_stage = MixtureSustain.subtype_and_stage_individuals_newData(sustain, L_yes_new, L_no_new, samples_sequence, samples_f, N_samples)

@@ -27,7 +27,7 @@ import pathos
 #The data structure class for AbstractSustain. It has no data itself - the implementations of AbstractSustain need to define their own implementations of this class.
 class AbstractSustainData(ABC):
 
-    @abstractmethod
+    @abstractmethod # Static methods (@)
     def __init__(self):
         pass
 
@@ -85,7 +85,7 @@ class AbstractSustain(ABC):
 
         if self.use_parallel_startpoints:
 
-            np_version                  = float(np.__version__.split('.')[0] + '.' + np.__version__.split('.')[1])
+            np_version                  = float(np.__version__.split('.') [0] + '.' + np.__version__.split('.') [1])
             assert (np_version >= 1.18, "numpy version must be >= 1.18 for parallelization to work properly.")
 
             self.pool                   = pathos.multiprocessing.ProcessingPool() #pathos.multiprocessing.ParallelPool()
@@ -97,13 +97,13 @@ class AbstractSustain(ABC):
     def run_sustain_algorithm(self):
         # Externally called method to start the SuStaIn algorithm after initializing the SuStaIn class object properly
 
-        ml_sequence_prev_EM                 = []
-        ml_f_prev_EM                        = []
+        ml_sequence_prev_EM                 =  [] # Sequence, S
+        ml_f_prev_EM                        =  [] # Number of individuals, f
 
         np.random.seed()
 
         fig0, ax0                           = plt.subplots()
-        for s in range(self.N_S_max):
+        for s in range(self.N_S_max): # Create a pickle file for each subtype
             pickle_filename_s               = self.output_folder + '/' + self.dataset_name + '_subtype' + str(s) + '.pickle'
             pickle_filepath                 = Path(pickle_filename_s)
             print("pickle_filepath", pickle_filepath)
@@ -113,18 +113,18 @@ class AbstractSustain(ABC):
 
                 loaded_variables            = pickle.load(pickle_file)
 
-                #self.stage_zscore           = loaded_variables["stage_zscore"]
-                #self.stage_biomarker_index  = loaded_variables["stage_biomarker_index"]
-                #self.N_S_max                = loaded_variables["N_S_max"]
+                #self.stage_zscore           = loaded_variables ["stage_zscore"]
+                #self.stage_biomarker_index  = loaded_variables ["stage_biomarker_index"]
+                #self.N_S_max                = loaded_variables ["N_S_max"]
 
-                samples_likelihood          = loaded_variables["samples_likelihood"]
-                samples_sequence            = loaded_variables["samples_sequence"]
-                samples_f                   = loaded_variables["samples_f"]
+                samples_likelihood          = loaded_variables ["samples_likelihood"]
+                samples_sequence            = loaded_variables ["samples_sequence"]
+                samples_f                   = loaded_variables ["samples_f"]
 
-                ml_sequence_EM              = loaded_variables["ml_sequence_EM"]
-                ml_sequence_prev_EM         = loaded_variables["ml_sequence_prev_EM"]
-                ml_f_EM                     = loaded_variables["ml_f_EM"]
-                ml_f_prev_EM                = loaded_variables["ml_f_prev_EM"]
+                ml_sequence_EM              = loaded_variables ["ml_sequence_EM"]
+                ml_sequence_prev_EM         = loaded_variables ["ml_sequence_prev_EM"]
+                ml_f_EM                     = loaded_variables ["ml_f_EM"]
+                ml_f_prev_EM                = loaded_variables ["ml_f_prev_EM"]
 
                 pickle_file.close()
             else:
@@ -150,7 +150,7 @@ class AbstractSustain(ABC):
                 ml_f_prev_EM                = ml_f_EM
 
             # max like subtype and stage / subject
-            N_samples                       = 1000 # CHANGE? MCMC related?
+            N_samples                       = 1000 # CHANGE to actual number of samples?
             ml_subtype,             \
             prob_ml_subtype,        \
             ml_stage,               \
@@ -165,28 +165,28 @@ class AbstractSustain(ABC):
                     os.makedirs(self.output_folder)
 
                 save_variables                          = {}
-                save_variables["samples_sequence"]      = samples_sequence
-                save_variables["samples_f"]             = samples_f
-                save_variables["samples_likelihood"]    = samples_likelihood
+                save_variables ["samples_sequence"]      = samples_sequence
+                save_variables ["samples_f"]             = samples_f
+                save_variables ["samples_likelihood"]    = samples_likelihood
 
-                save_variables["ml_subtype"]            = ml_subtype
-                save_variables["prob_ml_subtype"]       = prob_ml_subtype
-                save_variables["ml_stage"]              = ml_stage
-                save_variables["prob_ml_stage"]         = prob_ml_stage
-                save_variables["prob_subtype"]          = prob_subtype
-                save_variables["prob_stage"]            = prob_stage
-                save_variables["prob_subtype_stage"]    = prob_subtype_stage
+                save_variables ["ml_subtype"]            = ml_subtype
+                save_variables ["prob_ml_subtype"]       = prob_ml_subtype
+                save_variables ["ml_stage"]              = ml_stage
+                save_variables ["prob_ml_stage"]         = prob_ml_stage
+                save_variables ["prob_subtype"]          = prob_subtype
+                save_variables ["prob_stage"]            = prob_stage
+                save_variables ["prob_subtype_stage"]    = prob_subtype_stage
 
-                save_variables["ml_sequence_EM"]        = ml_sequence_EM
-                save_variables["ml_sequence_prev_EM"]   = ml_sequence_prev_EM
-                save_variables["ml_f_EM"]               = ml_f_EM
-                save_variables["ml_f_prev_EM"]          = ml_f_prev_EM
+                save_variables ["ml_sequence_EM"]        = ml_sequence_EM
+                save_variables ["ml_sequence_prev_EM"]   = ml_sequence_prev_EM
+                save_variables ["ml_f_EM"]               = ml_f_EM
+                save_variables ["ml_f_prev_EM"]          = ml_f_prev_EM
 
                 pickle_file                 = open(pickle_filename_s, 'wb')
                 pickle_output               = pickle.dump(save_variables, pickle_file)
                 pickle_file.close()
 
-            n_samples                       = self.__sustainData.getNumSamples() #self.__data.shape[0]
+            n_samples                       = self.__sustainData.getNumSamples() #self.__data.shape [0]
 
             # plot results
             fig, ax                         = self._plot_sustain_model(samples_sequence, samples_f, n_samples)
@@ -201,7 +201,7 @@ class AbstractSustain(ABC):
         fig0.savefig(self.output_folder + '/MCMC_likelihood' + str(self.N_iterations_MCMC) + '.png', bbox_inches='tight')
         fig0.show()
 
-        return ml_subtype
+        return ml_subtype, samples_sequence
 
     def cross_validate_sustain_model(self, test_idxs, select_fold = []):
         # Cross-validate the SuStaIn model by running the SuStaIn algorithm (E-M
@@ -216,7 +216,7 @@ class AbstractSustain(ABC):
             os.makedirs(self.output_folder)
 
         if select_fold:
-            test_idxs                       = test_idxs[select_fold]
+            test_idxs                       = test_idxs [select_fold]
         Nfolds                              = len(test_idxs)
 
         loglike_matrix                         = np.zeros((Nfolds, self.N_S_max))
@@ -224,14 +224,14 @@ class AbstractSustain(ABC):
         for fold in range(Nfolds):
 
 
-            #        print('Cross-validating fold',fold,'of',Nfolds,'with index',test_idxs[fold])
-            indx_train                      = np.array([x for x in range(self.__sustainData.getNumSamples()) if x not in test_idxs[fold]])
-            indx_test                       = test_idxs[fold]
+            #        print('Cross-validating fold',fold,'of',Nfolds,'with index',test_idxs [fold])
+            indx_train                      = np.array( [x for x in range(self.__sustainData.getNumSamples()) if x not in test_idxs [fold]])
+            indx_test                       = test_idxs [fold]
             sustainData_train               = self.__sustainData.reindex(indx_train)
             sustainData_test                = self.__sustainData.reindex(indx_test)
 
-            ml_sequence_prev_EM             = []
-            ml_f_prev_EM                    = []
+            ml_sequence_prev_EM             =  []
+            ml_f_prev_EM                    =  []
 
             for s in range(self.N_S_max):
 
@@ -247,16 +247,16 @@ class AbstractSustain(ABC):
 
                     loaded_variables        = pickle.load(pickle_file)
 
-                    ml_sequence_EM          = loaded_variables["ml_sequence_EM"]
-                    ml_sequence_prev_EM     = loaded_variables["ml_sequence_prev_EM"]
-                    ml_f_EM                 = loaded_variables["ml_f_EM"]
-                    ml_f_prev_EM            = loaded_variables["ml_f_prev_EM"]
+                    ml_sequence_EM          = loaded_variables ["ml_sequence_EM"]
+                    ml_sequence_prev_EM     = loaded_variables ["ml_sequence_prev_EM"]
+                    ml_f_EM                 = loaded_variables ["ml_f_EM"]
+                    ml_f_prev_EM            = loaded_variables ["ml_f_prev_EM"]
 
-                    samples_likelihood      = loaded_variables["samples_likelihood"]
-                    samples_sequence        = loaded_variables["samples_sequence"]
-                    samples_f               = loaded_variables["samples_f"]
+                    samples_likelihood      = loaded_variables ["samples_likelihood"]
+                    samples_sequence        = loaded_variables ["samples_sequence"]
+                    samples_f               = loaded_variables ["samples_f"]
 
-                    mean_likelihood_subj_test = loaded_variables["mean_likelihood_subj_test"]
+                    mean_likelihood_subj_test = loaded_variables ["mean_likelihood_subj_test"]
                     pickle_file.close()
 
                     samples_likelihood_subj_test = self._evaluate_likelihood_setofsamples(sustainData_test, samples_sequence, samples_f)
@@ -290,39 +290,40 @@ class AbstractSustain(ABC):
                         os.makedirs(self.output_folder)
 
                     save_variables                                      = {}
-                    save_variables["ml_sequence_EM"]                    = ml_sequence_EM
-                    save_variables["ml_sequence_prev_EM"]               = ml_sequence_prev_EM
-                    save_variables["ml_f_EM"]                           = ml_f_EM
-                    save_variables["ml_f_prev_EM"]                      = ml_f_prev_EM
+                    save_variables ["ml_sequence_EM"]                    = ml_sequence_EM
+                    save_variables ["ml_sequence_prev_EM"]               = ml_sequence_prev_EM
+                    save_variables ["ml_f_EM"]                           = ml_f_EM
+                    save_variables ["ml_f_prev_EM"]                      = ml_f_prev_EM
 
-                    save_variables["samples_sequence"]                  = samples_sequence
-                    save_variables["samples_f"]                         = samples_f
-                    save_variables["samples_likelihood"]                = samples_likelihood
+                    save_variables ["samples_sequence"]                  = samples_sequence
+                    save_variables ["samples_f"]                         = samples_f
+                    save_variables ["samples_likelihood"]                = samples_likelihood
 
-                    save_variables["mean_likelihood_subj_test"]         = mean_likelihood_subj_test
+                    save_variables ["mean_likelihood_subj_test"]         = mean_likelihood_subj_test
 
                     pickle_file                 = open(pickle_filename_fold_s, 'wb')
                     pickle_output               = pickle.dump(save_variables, pickle_file)
                     pickle_file.close()
    
-                loglike_matrix[fold, s]            = np.mean(np.sum(np.log(samples_likelihood_subj_test+ 1e-250),axis=0))
+                loglike_matrix [fold, s]            = np.mean(np.sum(np.log(samples_likelihood_subj_test+ 1e-250),axis=0))
 
         print("Average test set log-likelihood for each subtype model: " + str(np.mean(loglike_matrix, 0)))
         # ------------CHANGE ----------- (if GROUP 2 PLOT not working - PETER)
         import pandas as pd
         import pylab
         df_loglike                                 = pd.DataFrame(data = loglike_matrix, columns = ["s_" + str(i) for i in range(self.N_S_max)])
-        df_loglike.boxplot(grid=False)
-        y_arr_test = [] # Lucy added
+        # df_loglike.boxplot(grid=False) # PROBLEM
+        # df_loglike.boxplot(grid=True)
+        log_likelihoods = [] # Lucy added
         for i in range(self.N_S_max):
-            y                                   = df_loglike[["s_" + str(i)]]
-            print("y", y)
+            y                                   = df_loglike [ ["s_" + str(i)]]
+            # print("y", y)
             x                                   = np.random.normal(1+i, 0.04, size=len(y)) # Add some random "jitter" to the x-axis
-            y_arr_test.append(y) # Lucy added
+            log_likelihoods.append(y) # Lucy added
 
-            pylab.plot(x, y, 'r.', alpha=0.2) # Commended out as was messing up Group 2 plot (Peter)
+            pylab.plot(x, y, 'r.', alpha=0.2) # Comment out if  messing up Group 2 plot? (Peter)
 
-        print("y_arr_test =", y_arr_test)
+        # print("y_arr_test =", log_likelihoods)
         # ------------CHANGE - ---------- (if GROUP 2 PLOT not working - PETER)
 
         CVIC = np.zeros(self.N_S_max)
@@ -336,7 +337,7 @@ class AbstractSustain(ABC):
 
                 loaded_variables        = pickle.load(pickle_file)
 
-                mean_likelihood_subj_test = loaded_variables["mean_likelihood_subj_test"]
+                mean_likelihood_subj_test = loaded_variables ["mean_likelihood_subj_test"]
                 pickle_file.close()
     
                 if fold == 0:
@@ -344,11 +345,11 @@ class AbstractSustain(ABC):
                 else:
                     mean_likelihood_subj_test_cval    = np.concatenate((mean_likelihood_subj_test_cval, mean_likelihood_subj_test), axis=0)
 
-            CVIC[s] = -2*sum(np.log(mean_likelihood_subj_test_cval))
+            CVIC [s] = -2*sum(np.log(mean_likelihood_subj_test_cval))
 
         print("CVIC for each subtype model: " + str(CVIC))
 
-        return loglike_matrix, CVIC, y_arr_test # Lucy ass y_arr_test
+        return loglike_matrix, CVIC, log_likelihoods, samples_f # Lucy added log_likelihoods
 
 
     def combine_cross_validated_sequences(self, N_subtypes, N_folds):
@@ -365,13 +366,13 @@ class AbstractSustain(ABC):
 
         loaded_variables_full               = pickle.load(pickle_file)
 
-        ml_sequence_EM_full                 = loaded_variables_full["ml_sequence_EM"]
-        ml_f_EM_full                        = loaded_variables_full["ml_f_EM"]
+        ml_sequence_EM_full                 = loaded_variables_full ["ml_sequence_EM"]
+        ml_f_EM_full                        = loaded_variables_full ["ml_f_EM"]
 
         #re-index so that subtypes are in descending order by fraction of subjects
-        index_EM_sort                       = np.argsort(ml_f_EM_full)[::-1]
-        ml_sequence_EM_full                 = ml_sequence_EM_full[index_EM_sort,:]
-        ml_f_EM_full                        = ml_f_EM_full[index_EM_sort]
+        index_EM_sort                       = np.argsort(ml_f_EM_full) [::-1]
+        ml_sequence_EM_full                 = ml_sequence_EM_full [index_EM_sort,:]
+        ml_f_EM_full                        = ml_f_EM_full [index_EM_sort]
 
         for i in range(N_folds):
 
@@ -385,20 +386,20 @@ class AbstractSustain(ABC):
 
             loaded_variables_i              = pickle.load(pickle_file)
 
-            ml_sequence_EM_i                = loaded_variables_i["ml_sequence_EM"]
-            ml_f_EM_i                       = loaded_variables_i["ml_f_EM"]
+            ml_sequence_EM_i                = loaded_variables_i ["ml_sequence_EM"]
+            ml_f_EM_i                       = loaded_variables_i ["ml_f_EM"]
 
-            samples_sequence_i              = loaded_variables_i["samples_sequence"]
-            samples_f_i                     = loaded_variables_i["samples_f"]
+            samples_sequence_i              = loaded_variables_i ["samples_sequence"]
+            samples_f_i                     = loaded_variables_i ["samples_f"]
 
-            mean_likelihood_subj_test       = loaded_variables_i["mean_likelihood_subj_test"]
+            mean_likelihood_subj_test       = loaded_variables_i ["mean_likelihood_subj_test"]
 
             pickle_file.close()
 
             # Really simple approach: choose order based on this fold's fraction of subjects per subtype
             # It doesn't work very well when the fractions of subjects are similar across subtypes
             #mean_f_i                        = np.mean(samples_f_i, 1)
-            #iMax_vec                        = np.argsort(mean_f_i)[::-1]
+            #iMax_vec                        = np.argsort(mean_f_i) [::-1]
             #iMax_vec                        = iMax_vec.astype(int)
 
             #This approach seems to work better:
@@ -409,28 +410,28 @@ class AbstractSustain(ABC):
             corr_mat                        = np.zeros((N_subtypes, N_subtypes))
             for j in range(N_subtypes):
                for k in range(N_subtypes):
-                   corr_mat[j,k]            = stats.kendalltau(ml_sequence_EM_full[j,:], ml_sequence_EM_i[k,:]).correlation
-            set_full                        = []
-            set_fold_i                      = []
-            i_i, i_j                        = np.unravel_index(np.argsort(corr_mat.flatten())[::-1], (N_subtypes, N_subtypes))
+                   corr_mat [j,k]            = stats.kendalltau(ml_sequence_EM_full [j,:], ml_sequence_EM_i [k,:]).correlation
+            set_full                        =  []
+            set_fold_i                      =  []
+            i_i, i_j                        = np.unravel_index(np.argsort(corr_mat.flatten()) [::-1], (N_subtypes, N_subtypes))
             for k in range(len(i_i)):
-                if not i_i[k] in set_full and not i_j[k] in set_fold_i:
-                    set_full.append(i_i[k].astype(int))
-                    set_fold_i.append(i_j[k].astype(int))
-            index_set_full                  = np.argsort(set_full).astype(int) #np.argsort(set_full)[::-1].astype(int)
-            iMax_vec                        = [set_fold_i[i] for i in index_set_full]
+                if not i_i [k] in set_full and not i_j [k] in set_fold_i:
+                    set_full.append(i_i [k].astype(int))
+                    set_fold_i.append(i_j [k].astype(int))
+            index_set_full                  = np.argsort(set_full).astype(int) #np.argsort(set_full) [::-1].astype(int)
+            iMax_vec                        =  [set_fold_i [i] for i in index_set_full]
 
             assert(np.all(np.sort(iMax_vec)==np.arange(N_subtypes)))
 
             if i == 0:
-                samples_sequence_cval       = samples_sequence_i[iMax_vec,:,:]
-                samples_f_cval              = samples_f_i[iMax_vec, :]
+                samples_sequence_cval       = samples_sequence_i [iMax_vec,:,:]
+                samples_f_cval              = samples_f_i [iMax_vec, :]
             else:
-                samples_sequence_cval       = np.concatenate((samples_sequence_cval,    samples_sequence_i[iMax_vec,:,:]),  axis=2)
-                samples_f_cval              = np.concatenate((samples_f_cval,           samples_f_i[iMax_vec,:]),           axis=1)
+                samples_sequence_cval       = np.concatenate((samples_sequence_cval,    samples_sequence_i [iMax_vec,:,:]),  axis=2)
+                samples_f_cval              = np.concatenate((samples_f_cval,           samples_f_i [iMax_vec,:]),           axis=1)
 
         n_samples                           = self.__sustainData.getNumSamples()
-        plot_order                          = ml_sequence_EM_full[0,:].astype(int)
+        plot_order                          = ml_sequence_EM_full [0,:].astype(int)
         fig, ax                             = self._plot_sustain_model(samples_sequence_cval, samples_f_cval, n_samples, cval=True, plot_order=plot_order)
 
         # save and show this figure after all subtypes have been calculcated
@@ -440,37 +441,51 @@ class AbstractSustain(ABC):
         fig.savefig(png_filename, bbox_inches='tight')
         fig.show()
 
-
         #return samples_sequence_cval, samples_f_cval, kendalls_tau_mat, f_mat #samples_sequence_cval
 
     def subtype_and_stage_individuals(self, sustainData, samples_sequence, samples_f, N_samples):
         # Subtype and stage a set of subjects. Useful for subtyping/staging subjects that were not used to build the model
 
-        nSamples                            = sustainData.getNumSamples()  #data_local.shape[0]
-        nStages                             = sustainData.getNumStages()    #self.stage_zscore.shape[1]
+        nSamples                            = sustainData.getNumSamples()  #data_local.shape [0]
+        nStages                             = sustainData.getNumStages()    #self.stage_zscore.shape [1]
 
-        n_iterations_MCMC                   = samples_sequence.shape[2]
+        n_iterations_MCMC                   = samples_sequence.shape [2]
         select_samples                      = np.round(np.linspace(0, n_iterations_MCMC - 1, N_samples))
-        N_S                                 = samples_sequence.shape[0]
+        N_S                                 = samples_sequence.shape [0]
         temp_mean_f                         = np.mean(samples_f, axis=1)
-        ix                                  = np.argsort(temp_mean_f)[::-1]
+        ix                                  = np.argsort(temp_mean_f) [::-1]
 
         prob_subtype_stage                  = np.zeros((nSamples, nStages + 1, N_S))
         prob_subtype                        = np.zeros((nSamples, N_S))
         prob_stage                          = np.zeros((nSamples, nStages + 1))
 
         for i in range(N_samples):
-            sample                          = int(select_samples[i])
+            sample                          = int(select_samples [i])
 
-            this_S                          = samples_sequence[ix, :, sample]
-            this_f                          = samples_f[ix, sample]
+            this_S                          = samples_sequence [ix, :, sample]
+            this_f                          = samples_f [ix, sample]
 
             _,                  \
             _,                  \
             total_prob_stage,   \
             total_prob_subtype, \
             total_prob_subtype_stage        = self._calculate_likelihood(sustainData, this_S, this_f)
-            total_prob_subtype              = total_prob_subtype.reshape(len(total_prob_subtype), N_S)
+            print("N_S=", N_S)
+            # print("N_S.shape=", N_S.shape)
+            print("total_prob_subtype =", total_prob_subtype)
+            print("total_prob_subtype.shape =", total_prob_subtype.shape)
+            print("this_S.shape =", this_S.shape)
+            print("this_f.shape =", this_f.shape)
+            # vvv *** PROBLEM: "ValueError: cannot reshape array of size 6 into shape (6,6)" - Why is it trying to reshape like this?
+            # total_prob_subtype              = total_prob_subtype.reshape(len(total_prob_subtype), N_S) # BUG LINE - EXPECTS >1 ROW
+            # total_prob_subtype              = total_prob_subtype.reshape(1, N_S) # Workaround - hard coded for 1 row (for testing an individual)
+            # ----------------------------------------------------------------------------------------------------------
+            if total_prob_subtype.ndim == 1: # Workaround 2
+                total_prob_subtype = total_prob_subtype.reshape(1, N_S)
+            else:
+                total_prob_subtype = total_prob_subtype.reshape(len(total_prob_subtype), N_S)
+            # ----------------------------------------------------------------------------------------------------------
+
             total_prob_subtype_norm         = total_prob_subtype        / np.tile(np.sum(total_prob_subtype, 1).reshape(len(total_prob_subtype), 1),        (1, N_S))
             total_prob_stage_norm           = total_prob_stage          / np.tile(np.sum(total_prob_stage, 1).reshape(len(total_prob_stage), 1),          (1, nStages + 1)) #removed total_prob_subtype
 
@@ -487,28 +502,28 @@ class AbstractSustain(ABC):
         prob_ml_stage                       = np.nan * np.ones((nSamples, 1))
 
         for i in range(nSamples):
-            this_prob_subtype               = np.squeeze(prob_subtype[i, :])
+            this_prob_subtype               = np.squeeze(prob_subtype [i, :])
 
             if (np.sum(np.isnan(this_prob_subtype)) == 0):
                 this_subtype                = np.where(this_prob_subtype == np.max(this_prob_subtype))
 
                 try:
-                    ml_subtype[i]           = this_subtype
+                    ml_subtype [i]           = this_subtype
                 except:
-                    ml_subtype[i]           = this_subtype[0][0]
+                    ml_subtype [i]           = this_subtype [0] [0]
                 if this_prob_subtype.size == 1 and this_prob_subtype == 1:
-                    prob_ml_subtype[i]      = 1
+                    prob_ml_subtype [i]      = 1
                 else:
                     try:
-                        prob_ml_subtype[i]  = this_prob_subtype[this_subtype]
+                        prob_ml_subtype [i]  = this_prob_subtype [this_subtype]
                     except:
-                        prob_ml_subtype[i]  = this_prob_subtype[this_subtype[0][0]]
+                        prob_ml_subtype [i]  = this_prob_subtype [this_subtype [0] [0]]
 
-            this_prob_stage                 = np.squeeze(prob_subtype_stage[i, :, int(ml_subtype[i])])
+            this_prob_stage                 = np.squeeze(prob_subtype_stage [i, :, int(ml_subtype [i])])
             if (np.sum(np.isnan(this_prob_stage)) == 0):
                 this_stage                  = np.where(this_prob_stage == np.max(this_prob_stage))
-                ml_stage[i]                 = this_stage[0][0]
-                prob_ml_stage[i]            = this_prob_stage[this_stage[0][0]]
+                ml_stage [i]                 = this_stage [0] [0]
+                prob_ml_stage [i]            = this_prob_stage [this_stage [0] [0]]
 
         return ml_subtype, prob_ml_subtype, ml_stage, prob_ml_stage, prob_subtype, prob_stage, prob_subtype_stage
 
@@ -540,18 +555,18 @@ class AbstractSustain(ABC):
             # in turn and try splitting into two subtypes
             _, _, _, p_sequence, _          = self._calculate_likelihood(sustainData, ml_sequence_prev, ml_f_prev)
 
-            ml_sequence_prev                = ml_sequence_prev.reshape(ml_sequence_prev.shape[0], ml_sequence_prev.shape[1])
-            p_sequence                      = p_sequence.reshape(p_sequence.shape[0], N_S - 1)
+            ml_sequence_prev                = ml_sequence_prev.reshape(ml_sequence_prev.shape [0], ml_sequence_prev.shape [1])
+            p_sequence                      = p_sequence.reshape(p_sequence.shape [0], N_S - 1)
             p_sequence_norm                 = p_sequence / np.tile(np.sum(p_sequence, 1).reshape(len(p_sequence), 1), (N_S - 1))
 
             # Assign individuals to a subtype (cluster) based on the previous model
             ml_cluster_subj                 = np.zeros((sustainData.getNumSamples(), 1))   #np.zeros((len(data_local), 1))
             for m in range(sustainData.getNumSamples()):                                   #range(len(data_local)):
-                ix                          = np.argmax(p_sequence_norm[m, :]) + 1
+                ix                          = np.argmax(p_sequence_norm [m, :]) + 1
 
                 #TEMP: MATLAB comparison
-                #ml_cluster_subj[m]          = ix*np.ceil(np.random.rand())
-                ml_cluster_subj[m]          = ix  # FIXME: should check this always works, as it differs to the Matlab code, which treats ix as an array
+                #ml_cluster_subj [m]          = ix*np.ceil(np.random.rand())
+                ml_cluster_subj [m]          = ix  # FIXME: should check this always works, as it differs to the Matlab code, which treats ix as an array
 
             ml_likelihood                   = -np.inf
             for ix_cluster_split in range(N_S - 1):
@@ -573,10 +588,10 @@ class AbstractSustain(ABC):
                     # hierarchy
                     this_seq_init           = ml_sequence_prev.copy()  # have to copy or changes will be passed to ml_sequence_prev
 
-                    this_seq_init[ix_cluster_split] = (this_ml_sequence_split[0]).reshape(this_ml_sequence_split.shape[1])
+                    this_seq_init [ix_cluster_split] = (this_ml_sequence_split [0]).reshape(this_ml_sequence_split.shape [1])
 
-                    this_seq_init           = np.hstack((this_seq_init.T, this_ml_sequence_split[1])).T
-                    this_f_init             = np.array([1.] * N_S) / float(N_S)
+                    this_seq_init           = np.hstack((this_seq_init.T, this_ml_sequence_split [1])).T
+                    this_f_init             = np.array( [1.] * N_S) / float(N_S)
 
                     print(' + Finding ML solution from hierarchical initialisation')
                     this_ml_sequence,       \
@@ -590,14 +605,14 @@ class AbstractSustain(ABC):
                     # possible SuStaIn models initialised by splitting each subtype
                     # in turn
                     # FIXME: these arrays have an unnecessary additional axis with size = N_startpoints - remove it further upstream
-                    if this_ml_likelihood[0] > ml_likelihood:
-                        ml_likelihood       = this_ml_likelihood[0]
-                        ml_sequence         = this_ml_sequence[:, :, 0]
-                        ml_f                = this_ml_f[:, 0]
-                        ml_likelihood_mat   = this_ml_likelihood_mat[0]
-                        ml_sequence_mat     = this_ml_sequence_mat[:, :, 0]
-                        ml_f_mat            = this_ml_f_mat[:, 0]
-                    print('- ML likelihood is', this_ml_likelihood[0])
+                    if this_ml_likelihood [0] > ml_likelihood:
+                        ml_likelihood       = this_ml_likelihood [0]
+                        ml_sequence         = this_ml_sequence [:, :, 0]
+                        ml_f                = this_ml_f [:, 0]
+                        ml_likelihood_mat   = this_ml_likelihood_mat [0]
+                        ml_sequence_mat     = this_ml_sequence_mat [:, :, 0]
+                        ml_f_mat            = this_ml_f_mat [:, 0]
+                    print('- ML likelihood is', this_ml_likelihood [0])
                 else:
                     print('Cluster', ix_cluster_split + 1, 'of', N_S - 1, 'too small for subdivision')
             print('Overall ML likelihood is', ml_likelihood)
@@ -620,19 +635,19 @@ class AbstractSustain(ABC):
         if ~isinstance(pool_output_list, list):
             pool_output_list                = list(pool_output_list)
 
-        ml_sequence_mat                     = np.zeros((1, sustainData.getNumStages(), self.N_startpoints)) #np.zeros((1, self.stage_zscore.shape[1], self.N_startpoints))
+        ml_sequence_mat                     = np.zeros((1, sustainData.getNumStages(), self.N_startpoints)) #np.zeros((1, self.stage_zscore.shape [1], self.N_startpoints))
         ml_f_mat                            = np.zeros((1, self.N_startpoints))
         ml_likelihood_mat                   = np.zeros(self.N_startpoints)
 
         for i in range(self.N_startpoints):
-            ml_sequence_mat[:, :, i]        = pool_output_list[i][0]
-            ml_f_mat[:, i]                  = pool_output_list[i][1]
-            ml_likelihood_mat[i]            = pool_output_list[i][2]
+            ml_sequence_mat [:, :, i]        = pool_output_list [i] [0]
+            ml_f_mat [:, i]                  = pool_output_list [i] [1]
+            ml_likelihood_mat [i]            = pool_output_list [i] [2]
 
         ix                                  = np.argmax(ml_likelihood_mat)
-        ml_sequence                         = ml_sequence_mat[:, :, ix]
-        ml_f                                = ml_f_mat[:, ix]
-        ml_likelihood                       = ml_likelihood_mat[ix]
+        ml_sequence                         = ml_sequence_mat [:, :, ix]
+        ml_f                                = ml_f_mat [:, ix]
+        ml_likelihood                       = ml_likelihood_mat [ix]
 
         return ml_sequence, ml_f, ml_likelihood, ml_sequence_mat, ml_f_mat, ml_likelihood_mat
 
@@ -644,7 +659,7 @@ class AbstractSustain(ABC):
 
         # randomly initialise the sequence of the linear z-score model
         seq_init                        = self._initialise_sequence(sustainData)
-        f_init                          = [1]
+        f_init                          =  [1]
 
         this_ml_sequence,   \
         this_ml_f,          \
@@ -679,15 +694,15 @@ class AbstractSustain(ABC):
         ml_likelihood_mat                   = np.zeros((self.N_startpoints, 1))
 
         for i in range(self.N_startpoints):
-            ml_sequence_mat[:, :, i]        = pool_output_list[i][0]
-            ml_f_mat[:, i]                  = pool_output_list[i][1]
-            ml_likelihood_mat[i]            = pool_output_list[i][2]
+            ml_sequence_mat [:, :, i]        = pool_output_list [i] [0]
+            ml_f_mat [:, i]                  = pool_output_list [i] [1]
+            ml_likelihood_mat [i]            = pool_output_list [i] [2]
 
-        ix                                  = [np.where(ml_likelihood_mat == max(ml_likelihood_mat))[0][0]] #ugly bit of code to get first index where likelihood is maximum
+        ix                                  =  [np.where(ml_likelihood_mat == max(ml_likelihood_mat)) [0] [0]] #ugly bit of code to get first index where likelihood is maximum
 
-        ml_sequence                         = ml_sequence_mat[:, :, ix]
-        ml_f                                = ml_f_mat[:, ix]
-        ml_likelihood                       = ml_likelihood_mat[ix]
+        ml_sequence                         = ml_sequence_mat [:, :, ix]
+        ml_f                                = ml_f_mat [:, ix]
+        ml_likelihood                       = ml_likelihood_mat [ix]
 
         return ml_sequence, ml_f, ml_likelihood, ml_sequence_mat, ml_f_mat, ml_likelihood_mat
 
@@ -702,24 +717,24 @@ class AbstractSustain(ABC):
         # randomly initialise individuals as belonging to one of the two subtypes (clusters)
         min_N_cluster                       = 0
         while min_N_cluster == 0:
-            cluster_assignment              = np.array([np.ceil(x) for x in N_S * np.random.rand(sustainData.getNumSamples())]).astype(int)
+            cluster_assignment              = np.array( [np.ceil(x) for x in N_S * np.random.rand(sustainData.getNumSamples())]).astype(int)
 
             temp_N_cluster                  = np.zeros(N_S)
             for s in range(1, N_S + 1):
                 temp_N_cluster              = np.sum((cluster_assignment == s).astype(int),
                                         0)  # FIXME? this means the last index always defines the sum...
-            min_N_cluster                   = min([temp_N_cluster])
+            min_N_cluster                   = min( [temp_N_cluster])
 
         # initialise the stages of the two models by fitting a single model to each of the two sets of individuals
         seq_init                            = np.zeros((N_S, sustainData.getNumStages()))
         for s in range(N_S):
-            index_s                         = cluster_assignment.reshape(cluster_assignment.shape[0], ) == (s + 1)
+            index_s                         = cluster_assignment.reshape(cluster_assignment.shape [0], ) == (s + 1)
             temp_sustainData                = sustainData.reindex(index_s)
 
             temp_seq_init                   = self._initialise_sequence(sustainData)
-            seq_init[s, :], _, _, _, _, _   = self._perform_em(temp_sustainData, temp_seq_init, [1])
+            seq_init [s, :], _, _, _, _, _   = self._perform_em(temp_sustainData, temp_seq_init,  [1])
 
-        f_init                              = np.array([1.] * N_S) / float(N_S)
+        f_init                              = np.array( [1.] * N_S) / float(N_S)
 
         # optimise the mixture of two models from the initialisation
         this_ml_sequence, \
@@ -738,7 +753,7 @@ class AbstractSustain(ABC):
         # ml_f          - the most probable proportion of individuals belonging to each subtype for the next SuStaIn model in the hierarchy
         # ml_likelihood - the likelihood of the most probable SuStaIn model for the next SuStaIn model in the hierarchy
 
-        N_S                                 = seq_init.shape[0]
+        N_S                                 = seq_init.shape [0]
 
         partial_iter                        = partial(self._find_ml_mixture_iteration, sustainData, seq_init, f_init)
         pool_output_list                    = self.pool.map(partial_iter, range(self.N_startpoints))
@@ -751,16 +766,16 @@ class AbstractSustain(ABC):
         ml_likelihood_mat                   = np.zeros((self.N_startpoints, 1))
 
         for i in range(self.N_startpoints):
-            ml_sequence_mat[:, :, i]        = pool_output_list[i][0]
-            ml_f_mat[:, i]                  = pool_output_list[i][1]
-            ml_likelihood_mat[i]            = pool_output_list[i][2]
+            ml_sequence_mat [:, :, i]        = pool_output_list [i] [0]
+            ml_f_mat [:, i]                  = pool_output_list [i] [1]
+            ml_likelihood_mat [i]            = pool_output_list [i] [2]
 
         ix                                  = np.where(ml_likelihood_mat == max(ml_likelihood_mat))
-        ix                                  = ix[0]
+        ix                                  = ix [0]
 
-        ml_sequence                         = ml_sequence_mat[:, :, ix]
-        ml_f                                = ml_f_mat[:, ix]
-        ml_likelihood                       = ml_likelihood_mat[ix]
+        ml_sequence                         = ml_sequence_mat [:, :, ix]
+        ml_f                                = ml_f_mat [:, ix]
+        ml_likelihood                       = ml_likelihood_mat [ix]
 
         return ml_sequence, ml_f, ml_likelihood, ml_sequence_mat, ml_f_mat, ml_likelihood_mat
 
@@ -785,8 +800,8 @@ class AbstractSustain(ABC):
         # Perform an E-M procedure to estimate parameters of SuStaIn model
         MaxIter                             = 100
 
-        N                                   = sustainData.getNumStages()    #self.stage_zscore.shape[1]
-        N_S                                 = current_sequence.shape[0]
+        N                                   = sustainData.getNumStages()    #self.stage_zscore.shape [1]
+        N_S                                 = current_sequence.shape [0]
         current_likelihood, _, _, _, _      = self._calculate_likelihood(sustainData, current_sequence, current_f)
 
         terminate                           = 0
@@ -795,10 +810,10 @@ class AbstractSustain(ABC):
         samples_f                           = np.nan * np.ones((MaxIter, N_S))
         samples_likelihood                  = np.nan * np.ones((MaxIter, 1))
 
-        samples_sequence[0, :, :]           = current_sequence.reshape(current_sequence.shape[1], current_sequence.shape[0])
+        samples_sequence [0, :, :]           = current_sequence.reshape(current_sequence.shape [1], current_sequence.shape [0])
         current_f                           = np.array(current_f).reshape(len(current_f))
-        samples_f[0, :]                     = current_f
-        samples_likelihood[0]               = current_likelihood
+        samples_f [0, :]                     = current_f
+        samples_likelihood [0]               = current_likelihood
         while terminate == 0:
 
             candidate_sequence,     \
@@ -815,9 +830,9 @@ class AbstractSustain(ABC):
                     current_f               = candidate_f
                     current_likelihood      = candidate_likelihood
 
-            samples_sequence[iteration, :, :] = current_sequence.T.reshape(current_sequence.T.shape[0], N_S)
-            samples_f[iteration, :]         = current_f
-            samples_likelihood[iteration]   = current_likelihood
+            samples_sequence [iteration, :, :] = current_sequence.T.reshape(current_sequence.T.shape [0], N_S)
+            samples_f [iteration, :]         = current_f
+            samples_likelihood [iteration]   = current_likelihood
 
             if iteration == (MaxIter - 1):
                 terminate                   = 1
@@ -839,9 +854,9 @@ class AbstractSustain(ABC):
         # total_prob_cluster    - the total probability of each subtype in the current SuStaIn model
         # p_perm_k              - the probability of each subjects data at each stage of each subtype in the current SuStaIn model
 
-        M                                   = sustainData.getNumSamples()  #data_local.shape[0]
-        N_S                                 = S.shape[0]
-        N                                   = sustainData.getNumStages()    #self.stage_zscore.shape[1]
+        M                                   = sustainData.getNumSamples()  #data_local.shape [0]
+        N_S                                 = S.shape [0]
+        N                                   = sustainData.getNumStages()    #self.stage_zscore.shape [1]
 
         f                                   = np.array(f).reshape(N_S, 1, 1)
         f_val_mat                           = np.tile(f, (1, N + 1, M))
@@ -850,7 +865,7 @@ class AbstractSustain(ABC):
         p_perm_k                            = np.zeros((M, N + 1, N_S))
 
         for s in range(N_S):
-            p_perm_k[:, :, s]               = self._calculate_likelihood_stage(sustainData, S[s])  #self.__calculate_likelihood_stage_linearzscoremodel_approx(data_local, S[s])
+            p_perm_k [:, :, s]               = self._calculate_likelihood_stage(sustainData, S [s])  #self.__calculate_likelihood_stage_linearzscoremodel_approx(data_local, S [s])
 
 
         total_prob_cluster                  = np.squeeze(np.sum(p_perm_k * f_val_mat, 1))
@@ -897,7 +912,7 @@ class AbstractSustain(ABC):
         seq_sigma_currentpass               = 1
         f_sigma_currentpass                 = 0.01  # magic number
 
-        N_S                                 = seq_init.shape[0]
+        N_S                                 = seq_init.shape [0]
 
         for i in range(n_passes_optimisation):
 
@@ -911,13 +926,13 @@ class AbstractSustain(ABC):
             samples_position_currentpass    = np.zeros(samples_sequence_currentpass.shape)
             for s in range(N_S):
                 for sample in range(n_iterations_MCMC_optimisation):
-                    temp_seq                        = samples_sequence_currentpass[s, :, sample]
-                    temp_inv                        = np.array([0] * samples_sequence_currentpass.shape[1])
-                    temp_inv[temp_seq.astype(int)]  = np.arange(samples_sequence_currentpass.shape[1])
-                    samples_position_currentpass[s, :, sample] = temp_inv
+                    temp_seq                        = samples_sequence_currentpass [s, :, sample]
+                    temp_inv                        = np.array( [0] * samples_sequence_currentpass.shape [1])
+                    temp_inv [temp_seq.astype(int)]  = np.arange(samples_sequence_currentpass.shape [1])
+                    samples_position_currentpass [s, :, sample] = temp_inv
 
             seq_sigma_currentpass           = np.std(samples_position_currentpass, axis=2, ddof=1)  # np.std is different to Matlab std, which normalises to N-1 by default
-            seq_sigma_currentpass[seq_sigma_currentpass < 0.01] = 0.01  # magic number
+            seq_sigma_currentpass [seq_sigma_currentpass < 0.01] = 0.01  # magic number
 
             f_sigma_currentpass             = np.std(samples_f_currentpass, axis=1, ddof=1)         # np.std is different to Matlab std, which normalises to N-1 by default
 
@@ -928,16 +943,16 @@ class AbstractSustain(ABC):
 
     def _evaluate_likelihood_setofsamples(self, sustainData, samples_sequence, samples_f):
         # Take MCMC samples of the uncertainty in the SuStaIn model parameters
-        M                                   = sustainData.getNumSamples()   #data_local.shape[0]
-        n_iterations                        = samples_sequence.shape[2]
+        M                                   = sustainData.getNumSamples()   #data_local.shape [0]
+        n_iterations                        = samples_sequence.shape [2]
         samples_likelihood_subj             = np.zeros((M, n_iterations))
         for i in range(n_iterations):
-            S                               = samples_sequence[:, :, i]
-            f                               = samples_f[:, i]
+            S                               = samples_sequence [:, :, i]
+            f                               = samples_f [:, i]
 
             _, likelihood_sample_subj, _, _, _  = self._calculate_likelihood(sustainData, S, f)
 
-            samples_likelihood_subj[:, i]   = likelihood_sample_subj
+            samples_likelihood_subj [:, i]   = likelihood_sample_subj
 
         return samples_likelihood_subj
 
