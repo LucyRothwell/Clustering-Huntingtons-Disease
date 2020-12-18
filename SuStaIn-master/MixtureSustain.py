@@ -68,7 +68,7 @@ class MixtureSustain(AbstractSustain):
         #   dataset_name                - for naming pickle files
         #   use_parallel_startpoints    - boolean for whether or not to parallelize the maximum likelihood loop
 
-        N                               =  L_yes.shape [1] # number of biomarkers
+        N                               =  L_yes.shape[1] # number of biomarkers
         assert (len(biomarker_labels) == N), "number of labels should match number of biomarkers"
 
         self.biomarker_labels           = biomarker_labels
@@ -400,8 +400,8 @@ class MixtureSustain(AbstractSustain):
 
         return fig, ax
 
+    # How does this differ from subtype_and_stage_individuals()?
     def subtype_and_stage_individuals_newData(self, L_yes_new, L_no_new, samples_sequence, samples_f, N_samples):
-
         numStages_new                   = L_yes_new.shape[1]    #number of stages == number of biomarkers here
 
         assert numStages_new == self.__sustainData.getNumStages(), "Number of stages in new data should be same as in training data"

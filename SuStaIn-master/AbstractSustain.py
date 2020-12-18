@@ -150,7 +150,7 @@ class AbstractSustain(ABC):
                 ml_f_prev_EM                = ml_f_EM
 
             # max like subtype and stage / subject
-            N_samples                       = 1000 # CHANGE to actual number of samples?
+            N_samples                       = 1000 # CHANGE to actual number of samples? (lucy)
             ml_subtype,             \
             prob_ml_subtype,        \
             ml_stage,               \
@@ -201,7 +201,7 @@ class AbstractSustain(ABC):
         fig0.savefig(self.output_folder + '/MCMC_likelihood' + str(self.N_iterations_MCMC) + '.png', bbox_inches='tight')
         fig0.show()
 
-        return ml_subtype, samples_sequence
+        return ml_subtype, ml_stage, samples_sequence
 
     def cross_validate_sustain_model(self, test_idxs, select_fold = []):
         # Cross-validate the SuStaIn model by running the SuStaIn algorithm (E-M
@@ -444,7 +444,7 @@ class AbstractSustain(ABC):
         #return samples_sequence_cval, samples_f_cval, kendalls_tau_mat, f_mat #samples_sequence_cval
 
     def subtype_and_stage_individuals(self, sustainData, samples_sequence, samples_f, N_samples):
-        # Subtype and stage a set of subjects. Useful for subtyping/staging subjects that were not used to build the model
+        # Subtype and stage a *SET* of subjects. Useful for subtyping/staging subjects that were not used to build the model
 
         nSamples                            = sustainData.getNumSamples()  #data_local.shape [0]
         nStages                             = sustainData.getNumStages()    #self.stage_zscore.shape [1]
@@ -470,17 +470,17 @@ class AbstractSustain(ABC):
             total_prob_stage,   \
             total_prob_subtype, \
             total_prob_subtype_stage        = self._calculate_likelihood(sustainData, this_S, this_f)
-            print("N_S=", N_S)
+            # print("N_S=", N_S)
             # print("N_S.shape=", N_S.shape)
-            print("total_prob_subtype =", total_prob_subtype)
-            print("total_prob_subtype.shape =", total_prob_subtype.shape)
-            print("this_S.shape =", this_S.shape)
-            print("this_f.shape =", this_f.shape)
+            # print("total_prob_subtype =", total_prob_subtype)
+            # print("total_prob_subtype.shape =", total_prob_subtype.shape)
+            # print("this_S.shape =", this_S.shape)
+            # print("this_f.shape =", this_f.shape)
             # vvv *** PROBLEM: "ValueError: cannot reshape array of size 6 into shape (6,6)" - Why is it trying to reshape like this?
             # total_prob_subtype              = total_prob_subtype.reshape(len(total_prob_subtype), N_S) # BUG LINE - EXPECTS >1 ROW
             # total_prob_subtype              = total_prob_subtype.reshape(1, N_S) # Workaround - hard coded for 1 row (for testing an individual)
             # ----------------------------------------------------------------------------------------------------------
-            if total_prob_subtype.ndim == 1: # Workaround 2
+            if len(total_prob_subtype) / N_S == 1: # Workaround 2
                 total_prob_subtype = total_prob_subtype.reshape(1, N_S)
             else:
                 total_prob_subtype = total_prob_subtype.reshape(len(total_prob_subtype), N_S)
