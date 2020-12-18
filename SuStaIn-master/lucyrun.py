@@ -666,11 +666,11 @@ stage_distributions = {}
 #     stage_distributions["Subtype", i] = distribution.iloc[:, 1] # 1 = stage column
 #     plt.hist(stage_distributions["Subtype", i])
 
-for i in range(N_S_max): # For each subtype
+for i in range(1,N_S_max): # For each subtype
     figs, axs = plt.subplots()
     col = pd.DataFrame(results_subtype_stage_all[results_subtype_stage_all.iloc[:, 0] == i]) # Create a subset ("col") where subtype = i (so we have a (n, 2) array where columns = subtype and stage (0 = subtype column)
     stage_distributions["Subtype", i] = col.iloc[:, 1] # Create a (n, 1) array showing only stages (for subtype i)
-    axs.hist(stage_distributions["Subtype", i]) # *** PROBLEM - need plotted on separate diagrams
+    axs.hist(stage_distributions["Subtype", i], bins=len(features_list), range=(1,6), x_label="Stages", y_label="Number of participants in sample")
     plot_title = 'Stage dist for Subtype', i
     axs.set_title(plot_title)
 
@@ -680,7 +680,7 @@ for i in range(N_S_max): # For each subtype
 # > See step 10 - just increase N_sub at beginning
 
 for i in range(1,N_S_max+1):
-    plt.scatter([i,i,i,i,i,i,i,i,i,i], log_likelihoods[i-1])
+    plt.scatter([i,i,i,i,i,i,i,i,i,i], log_likelihoods[i-1], y_label="Log likelihood", x_label="Number of subtypes in model")
 
 ### (17) Find subtype and stage of an individual NEW DATA
 # > At Visit 1 (Baseline) and Visit 2. Do they stay in same subtype / move up a stage?
