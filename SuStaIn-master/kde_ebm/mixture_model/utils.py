@@ -28,20 +28,20 @@ def get_prob_mat(X, mixture_models):
     n_particp, n_biomarkers = X.shape
     prob_mat = np.zeros((n_particp, n_biomarkers, 2))
     for i in range(n_biomarkers):
-        nan_mask = ~np.isnan(X[:, i])
-        probs = mixture_models[i].probability(X[nan_mask, i])
-        prob_mat[nan_mask, i, 0] = probs
-        prob_mat[~nan_mask, i, 0] = 0.5
-    prob_mat[:, :, 1] = 1-prob_mat[:, :, 0]
+        nan_mask = ~np.isnan(X [:, i])
+        probs = mixture_models [i].probability(X [nan_mask, i])
+        prob_mat [nan_mask, i, 0] = probs
+        prob_mat [~nan_mask, i, 0] = 0.5
+    prob_mat [:, :, 1] = 1-prob_mat [:, :, 0]
     return prob_mat
 
 
 def fit_all_gmm_models(X, y):
     n_particp, n_biomarkers = X.shape
-    mixture_models = []
+    mixture_models =  []
     for i in range(n_biomarkers):
-        bio_y = y[~np.isnan(X[:, i])]
-        bio_X = X[~np.isnan(X[:, i]), i]
+        bio_y = y [~np.isnan(X [:, i])]
+        bio_X = X [~np.isnan(X [:, i]), i]
         cn_comp = Gaussian()
         ad_comp = Gaussian()
         mm = ParametricMM(cn_comp, ad_comp)
@@ -52,11 +52,11 @@ def fit_all_gmm_models(X, y):
 
 def fit_all_kde_models(X, y):
     n_particp, n_biomarkers = X.shape
-    kde_mixtures = []
+    kde_mixtures =  []
     for i in range(n_biomarkers):
-        bio_X = X[:, i]
-        bio_y = y[~np.isnan(bio_X)]
-        bio_X = bio_X[~np.isnan(bio_X)].reshape(-1, 1)
+        bio_X = X [:, i]
+        bio_y = y [~np.isnan(bio_X)]
+        bio_X = bio_X [~np.isnan(bio_X)].reshape(-1, 1)
         kde = KDEMM()
         kde.fit(bio_X, bio_y)
         kde_mixtures.append(kde)

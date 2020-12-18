@@ -40,7 +40,7 @@ class ParametricMM():
         ----------
         theta : array-like, shape(5,)
             List containing the parameters required for a mixture model.
-            [hModelMu, hModelSig, dModelMu, dModelSig, mixture]
+             [hModelMu, hModelSig, dModelMu, dModelSig, mixture]
         inData : array-like, shape(numPatients,)
             Biomarker measurements for patients.
 
@@ -54,14 +54,14 @@ class ParametricMM():
         if np.isnan(X.sum()):
             raise ValueError('NaN in likelihood')
         if np.isnan(theta.sum()):
-            out = np.empty(X.shape[0])
-            out[:] = np.nan
+            out = np.empty(X.shape [0])
+            out [:] = np.nan
             return out, out
         n_cn_params = self.cn_comp.n_params
         n_ad_params = self.ad_comp.n_params
-        cn_theta = theta[:n_cn_params]
-        ad_theta = theta[n_cn_params:n_cn_params+n_ad_params]
-        mixture = theta[-1]
+        cn_theta = theta [:n_cn_params]
+        ad_theta = theta [n_cn_params:n_cn_params+n_ad_params]
+        mixture = theta [-1]
 
         self.cn_comp.set_theta(cn_theta)
         self.ad_comp.set_theta(ad_theta)
@@ -80,7 +80,7 @@ class ParametricMM():
         ----------
         theta : array-like, shape(5,)
             List containing the parameters required for a mixture model.
-            [hModelMu, hModelSig, dModelMu, dModelSig, mixture]
+             [hModelMu, hModelSig, dModelMu, dModelSig, mixture]
         inData : array-like, shape(numPatients,)
             Biomarker measurements for patients.
 
@@ -93,7 +93,7 @@ class ParametricMM():
         # number of paramters. Not included in this version of the code.
         cn_pdf, ad_pdf = self.pdf(theta, X)
         data_likelihood = cn_pdf + ad_pdf
-        data_likelihood[data_likelihood == 0] = np.finfo(float).eps
+        data_likelihood [data_likelihood == 0] = np.finfo(float).eps
         data_likelihood = np.log(data_likelihood)
         return -1*np.sum(data_likelihood)
 
@@ -128,34 +128,34 @@ class ParametricMM():
         -------
         mixInfoOutput : array-like, shape(5,)
             List containing the parameters required for a mixture model.
-            [hModelMu, hModelSig, dModelMu, dModelSig, mixture]
+             [hModelMu, hModelSig, dModelMu, dModelSig, mixture]
         """
-        event_sign = np.nanmean(X[y == 0]) < np.nanmean(X[y == 1])
-        opt_bounds = []
-        opt_bounds += self.cn_comp.get_bounds(X, X[y == 0], event_sign)
-        opt_bounds += self.ad_comp.get_bounds(X, X[y == 1], not event_sign)
+        event_sign = np.nanmean(X [y == 0]) < np.nanmean(X [y == 1])
+        opt_bounds =  []
+        opt_bounds += self.cn_comp.get_bounds(X, X [y == 0], event_sign)
+        opt_bounds += self.ad_comp.get_bounds(X, X [y == 1], not event_sign)
         # Magic number
-        opt_bounds += [(0.1, 0.9)]
-        init_params = []
-        init_params += self.cn_comp.estimate_params(X[y == 0])
-        init_params += self.ad_comp.estimate_params(X[y == 1])
+        opt_bounds +=  [(0.1, 0.9)]
+        init_params =  []
+        init_params += self.cn_comp.estimate_params(X [y == 0])
+        init_params += self.ad_comp.estimate_params(X [y == 1])
         # Magic number
-        init_params += [0.5]
+        init_params +=  [0.5]
         res = optimize.minimize(self.likelihood,
-                                init_params, args=(X[~np.isnan(X)],),
+                                init_params, args=(X [~np.isnan(X)],),
                                 bounds=opt_bounds,
                                 method='SLSQP')
         res = res.x
         if np.isnan(res.sum()):
             res = optimize.minimize(self.likelihood,
-                                    init_params, args=(X[~np.isnan(X)],),
+                                    init_params, args=(X [~np.isnan(X)],),
                                     bounds=opt_bounds)
             res = res.x
         n_cn_params = self.cn_comp.n_params
         n_ad_params = self.ad_comp.n_params
-        self.cn_comp.set_theta(res[:n_cn_params])
-        self.ad_comp.set_theta(res[n_cn_params:n_cn_params+n_ad_params])
-        self.mix = res[-1]
+        self.cn_comp.set_theta(res [:n_cn_params])
+        self.ad_comp.set_theta(res [n_cn_params:n_cn_params+n_ad_params])
+        self.mix = res [-1]
         self.theta = res
         return res
 
@@ -163,28 +163,28 @@ class ParametricMM():
         if fixed_component is not None:
             raise NotImplementedError('Only cn can be fixed currently')
 
-        event_sign = np.nanmean(X[y == 0]) < np.nanmean(X[y == 1])
+        event_sign = np.nanmean(X [y == 0]) < np.nanmean(X [y == 1])
 
-        cn_est = self.cn_comp.estimate_params(X[y == 0])
+        cn_est = self.cn_comp.estimate_params(X [y == 0])
         self.cn_comp.set_theta(cn_est)
 
-        opt_bounds = self.ad_comp.get_bounds(X, X[y == 1], not event_sign)
+        opt_bounds = self.ad_comp.get_bounds(X, X [y == 1], not event_sign)
         # magic number
-        opt_bounds += [(0.1, 0.9)]
-        init_params = self.ad_comp.estimate_params(X[y == 1])
+        opt_bounds +=  [(0.1, 0.9)]
+        init_params = self.ad_comp.estimate_params(X [y == 1])
         # magic number
-        init_params += [0.5]
-        self.fixed_cn_likelihood(init_params, X[~np.isnan(X)])
+        init_params +=  [0.5]
+        self.fixed_cn_likelihood(init_params, X [~np.isnan(X)])
         res = optimize.minimize(self.fixed_cn_likelihood,
-                                init_params, args=(X[~np.isnan(X)],),
+                                init_params, args=(X [~np.isnan(X)],),
                                 bounds=opt_bounds,
                                 method='SLSQP')
         res = res.x
         if np.isnan(res.sum()):
             res = optimize.minimize(self.fixed_cn_likelihood,
-                                    init_params, args=(X[~np.isnan(X)],),
+                                    init_params, args=(X [~np.isnan(X)],),
                                     bounds=opt_bounds)
             res = res.x
-        self.ad_comp.set_theta(res[:-1])
-        self.mix = res[-1]
+        self.ad_comp.set_theta(res [:-1])
+        self.mix = res [-1]
         return res

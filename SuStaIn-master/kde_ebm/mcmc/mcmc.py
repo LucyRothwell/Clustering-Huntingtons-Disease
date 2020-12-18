@@ -8,18 +8,18 @@ import numpy as np
 
 
 def greedy_ascent_creation(prob_mat, n_iter=1000, n_init=10):
-    n_biomarkers = prob_mat.shape[1]
-    starts_dict = dict((x, []) for x in range(n_init))
+    n_biomarkers = prob_mat.shape [1]
+    starts_dict = dict((x,  []) for x in range(n_init))
     for start_idx in range(n_init):
         current_order = EventOrder(n_biomarkers=n_biomarkers)
         current_order.score_ordering(prob_mat)
-        starts_dict[start_idx].append(current_order)
+        starts_dict [start_idx].append(current_order)
         for iter_n in range(1, n_iter):
             new_order = current_order.swap_events()
             new_order.score_ordering(prob_mat)
             if new_order > current_order:
                 current_order = new_order
-            starts_dict[start_idx].append(current_order)
+            starts_dict [start_idx].append(current_order)
     return starts_dict
 
 
@@ -32,12 +32,12 @@ def mcmc(X, mixture_models, n_iter=10000, greedy_n_iter=1000,
     if plot:
         fig, ax = greedy_ascent_trace(greedy_dict)
         fig.show()
-    current_order = greedy_dict[0][-1]
+    current_order = greedy_dict [0] [-1]
     for i in range(1, greedy_n_init):
-        new_order = greedy_dict[i][-1]
+        new_order = greedy_dict [i] [-1]
         if new_order > current_order:
             current_order = new_order
-    mcmc_samples = [current_order]
+    mcmc_samples =  [current_order]
     for i in range(1, n_iter):
         new_order = current_order.swap_events()
         new_order.score_ordering(prob_mat)
@@ -52,21 +52,21 @@ def mcmc(X, mixture_models, n_iter=10000, greedy_n_iter=1000,
 
 
 def create_bootstrap(X, y):
-    if np.bincount(y).shape[0] > 2:
+    if np.bincount(y).shape [0] > 2:
         raise NotImplementedError(('Only binary labels'
                                    'are currently supported'))
     n_particp, n_biomarkers = X.shape
     boot_X = np.empty(X.shape)
     boot_y = np.empty(y.shape, dtype='int32')
-    idxs = np.arange(y.shape[0])
+    idxs = np.arange(y.shape [0])
 
     for i in range(2):
-        sample = np.random.choice(idxs[y == i])
-        boot_X[i, :] = X[sample, :]
-        boot_y[i] = y[sample]
-    samples = np.random.choice(idxs, size=y.shape[0]-2)
-    boot_X[2:, :] = X[samples, :]
-    boot_y[2:] = y[samples]
+        sample = np.random.choice(idxs [y == i])
+        boot_X [i, :] = X [sample, :]
+        boot_y [i] = y [sample]
+    samples = np.random.choice(idxs, size=y.shape [0]-2)
+    boot_X [2:, :] = X [samples, :]
+    boot_y [2:] = y [samples]
     iqr = np.nanpercentile(boot_X, 75, axis=0)
     iqr -= np.nanpercentile(boot_X, 25, axis=0)
     if np.any(iqr == 0):
@@ -77,7 +77,7 @@ def create_bootstrap(X, y):
 def bootstrap_ebm(X, y, n_bootstrap=50, n_mcmc_iter=100000,
                   score_names=None, plot=False,
                   **kwargs):
-    bootstrap_samples = []
+    bootstrap_samples =  []
     for i in range(n_bootstrap):
         boot_X, boot_y = create_bootstrap(X, y)
         kde_mixtures = fit_all_gmm_models(boot_X, boot_y)
@@ -97,17 +97,17 @@ def bootstrap_ebm(X, y, n_bootstrap=50, n_mcmc_iter=100000,
 
 def parallel_bootstrap(X, y, n_bootstrap=50,
                         n_processes=-1):
-    bootstrap_samples = []
+    bootstrap_samples =  []
     for i in range(n_bootstrap):
         bootstrap_samples.append(create_bootstrap(X, y))
     if n_processes == -1:
         n_processes = cpu_count()
     pool = Pool(processes=n_processes)
     mcmc_samples = pool.map(parallel_bootstrap_, bootstrap_samples)
-    samples_formatted = []
+    samples_formatted =  []
     for i in range(n_bootstrap):
-        samples_formatted += mcmc_samples[0]
-        del mcmc_samples[0]
+        samples_formatted += mcmc_samples [0]
+        del mcmc_samples [0]
     return samples_formatted
 
 

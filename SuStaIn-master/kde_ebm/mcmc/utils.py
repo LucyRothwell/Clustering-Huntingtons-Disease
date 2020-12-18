@@ -8,8 +8,8 @@ def enumerate_all(X, mixture_models):
     prob_mat = get_prob_mat(X, mixture_models)
     best_score = -1e10
     best_order = None
-    enumerate_samples = []
-    for sequence in permutations(np.arange(X.shape[1])):
+    enumerate_samples =  []
+    for sequence in permutations(np.arange(X.shape [1])):
         event_order = EventOrder(ordering=np.array(sequence))
         sequence_score = event_order.score_ordering(prob_mat)
         enumerate_samples.append(event_order)

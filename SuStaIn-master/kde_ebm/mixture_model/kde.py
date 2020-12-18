@@ -15,8 +15,8 @@ class KDEMM(object):
 
     def fit(self, X, y):
         sorted_idx = X.argsort(axis=0).flatten()
-        kde_values = X.copy()[sorted_idx]
-        kde_labels = y.copy()[sorted_idx]
+        kde_values = X.copy() [sorted_idx]
+        kde_labels = y.copy() [sorted_idx]
         y.dtype = int
         y = y.astype(int)
         bin_counts = np.bincount(y).astype(float) # * PROBLEM: TypeError: Cannot cast array data from dtype('float64')
@@ -31,8 +31,8 @@ class KDEMM(object):
                                                    bandwidth=self.bandwidth)
             patholog_kde = neighbors.KernelDensity(kernel=self.kernel,
                                                    bandwidth=self.bandwidth)
-            controls_kde.fit(kde_values[kde_labels == 0])
-            patholog_kde.fit(kde_values[kde_labels == 1])
+            controls_kde.fit(kde_values [kde_labels == 0])
+            patholog_kde.fit(kde_values [kde_labels == 1])
 
             controls_score = controls_kde.score_samples(kde_values)
             controls_score = np.exp(controls_score)*mixture
@@ -47,25 +47,25 @@ class KDEMM(object):
             old_ratios = ratio
             kde_labels = ratio < 0.5
 
-            diff_y = np.hstack(([0], np.diff(kde_labels)))
+            diff_y = np.hstack(( [0], np.diff(kde_labels)))
             if (np.sum(diff_y != 0) == 2 and
-                    np.unique(kde_labels).shape[0] == 2):
+                    np.unique(kde_labels).shape [0] == 2):
                 split_y = int(np.all(np.diff(np.where(kde_labels == 0)) == 1))
-                sizes = [x.shape[0] for x in
-                         np.split(diff_y, np.where(diff_y != 0)[0])]
-                split_prior_smaller = (np.mean(kde_values[kde_labels ==
+                sizes =  [x.shape [0] for x in
+                         np.split(diff_y, np.where(diff_y != 0) [0])]
+                split_prior_smaller = (np.mean(kde_values [kde_labels ==
                                                           split_y])
-                                       < np.mean(kde_values[kde_labels ==
+                                       < np.mean(kde_values [kde_labels ==
                                                             (split_y+1) % 2]))
                 if split_prior_smaller:
-                    replace_idxs = np.arange(kde_values.shape[0])[-sizes[2]:]
+                    replace_idxs = np.arange(kde_values.shape [0]) [-sizes [2]:]
                 else:
-                    replace_idxs = np.arange(kde_values.shape[0])[:sizes[0]]
+                    replace_idxs = np.arange(kde_values.shape [0]) [:sizes [0]]
 
-                kde_labels[replace_idxs] = (split_y+1) % 2
+                kde_labels [replace_idxs] = (split_y+1) % 2
 
             bin_counts = np.bincount(kde_labels).astype(float)
-            mixture = bin_counts[0] / bin_counts.sum()
+            mixture = bin_counts [0] / bin_counts.sum()
             if(mixture < 0.10 or mixture > 0.90):
                 break
         self.controls_kde = controls_kde
@@ -81,9 +81,9 @@ class KDEMM(object):
         return -1*np.sum(data_likelihood)
 
     def pdf(self, X, **kwargs):
-        controls_score = self.controls_kde.score_samples(X)
+        controls_score = self.controls_kde.score_samples(X) # Controls
         controls_score = np.exp(controls_score)*self.mixture
-        patholog_score = self.patholog_kde.score_samples(X)
+        patholog_score = self.patholog_kde.score_samples(X) # Disease
         patholog_score = np.exp(patholog_score)*(1-self.mixture)
         return controls_score, patholog_score
 
@@ -97,7 +97,7 @@ class KDEMM(object):
         controls_score, patholog_score = self.pdf(X.reshape(-1, 1))
         likelihood = controls_score + patholog_score
         likelihood = -1*np.log(likelihood).sum()
-        return 2*likelihood+2*np.log(X.shape[0])
+        return 2*likelihood+2*np.log(X.shape [0])
 
 
 def hscott(x, weights=None):

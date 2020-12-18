@@ -59,10 +59,10 @@ class Gaussian():
             self.sigma = sigma
 
     def set_theta(self, theta):
-        self.set_params(mu=theta[0], sigma=theta[1])
+        self.set_params(mu=theta [0], sigma=theta [1])
 
     def get_theta(self):
-        return [self.mu, self.sigma]
+        return  [self.mu, self.sigma]
 
     def get_bounds(self, X_mix, X_comp, event_sign):
         """Get the bounds be used in the minimisation of the mixture model.
@@ -85,10 +85,10 @@ class Gaussian():
             theta, i.e. mean and standard deviation.
         """
         if event_sign:
-            return [(np.nanmin(X_mix), np.nanmean(X_comp)),
+            return  [(np.nanmin(X_mix), np.nanmean(X_comp)),
                     (0.05*np.nanstd(X_comp), np.nanstd(X_comp))]
         else:
-            return [(np.nanmean(X_comp), np.nanmax(X_comp)),
+            return  [(np.nanmean(X_comp), np.nanmax(X_comp)),
                     (0.05*np.nanstd(X_comp), np.nanstd(X_comp))]
 
     def estimate_params(self, X_comp):
@@ -105,7 +105,7 @@ class Gaussian():
         name : array-like, shape(2)
             Initial values of parameters in theta for optimisation.
         """
-        return [np.nanmean(X_comp), np.nanstd(X_comp)]
+        return  [np.nanmean(X_comp), np.nanstd(X_comp)]
 
     def __repr__(self,):
         return "Gaussian(mu=%r,sigma=%r)" % (self.mu, self.sigma)

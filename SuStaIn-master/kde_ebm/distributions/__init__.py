@@ -2,4 +2,4 @@
 # License: TBC
 from .gaussian import Gaussian
 
-__all__ = ['Gaussian', ]
+__all__ =  ['Gaussian', ]
