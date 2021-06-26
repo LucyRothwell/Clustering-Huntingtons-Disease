@@ -12,7 +12,7 @@
 # (0) Load data
 # (0.1) Recoding the HD category column
 # (0.2) OneHotEncoding
-# >>> (0.3) Selecting longitudial_data + new_patient_data for later
+# >>> (0.3) Selecting longitudinal_data + new_patient_data for later
 # (1) Define settings: Sustain type & features etc
 # (2) Fix erroneous values
 # >>> (2.5) Holding out new_patient_data to exclude from next step
@@ -163,7 +163,7 @@ remove =  ["studyid", "seq", "visit", "visdy", "visstat"] # Non-numerical featur
 visit_type = "Baseline" # We only want baseline visits
 sustainType = "mixture_KDE" # for use in functions later
 
-N_S_max = 7 # NUMBER OF SUBTYPES
+N_S_max = 5 # NUMBER OF SUBTYPES
 N_folds = 10 # NUMBER OF FOLDS FOR CROSS VALIDATION
 
 # ------------------------------------ PLOT - EXPLORE VARS ------------------------------------------------------------
@@ -365,10 +365,31 @@ elif sustainType == 'zscore': # Exclude hdcat.
 # Merge data to get data counts
 data_m = pd.DataFrame(data)
 data_merge = pd.merge(data_m, profile_df, on="subjid", how='left')
-# print(data_merge ["hdcat"].value_counts(normalize=True)*100)
-# print(data_merge ["sex"].value_counts(normalize=True)*100)
-# print(data_merge ["region"].value_counts(normalize=True)*100)
-# print(data_merge ["race"].value_counts(normalize=True)*100)
+data_merge_disease = data_merge[data_merge["hdcat"] == 1]
+data_merge_preman = data_merge[data_merge["hdcat"] == 2]
+
+data_disease_pm = pd.concat([data_merge_disease, data_merge_preman], axis=0)
+data_merge_controls = data_merge[data_merge["hdcat"] == 0]
+
+print(data_disease_pm["hdcat"].value_counts())
+print(data_disease_pm["hdcat"].value_counts(normalize=True)*100)
+print(data_disease_pm["sex"].value_counts())
+print(data_disease_pm["sex"].value_counts(normalize=True)*100)
+print(data_disease_pm["race"].value_counts())
+print(data_disease_pm["race"].value_counts(normalize=True)*100)
+print(data_disease_pm["isced"].value_counts())
+print(data_disease_pm["isced"].value_counts(normalize=True)*100)
+print(data_disease_pm["age"].mean())
+
+print(data_merge_controls["hdcat"].value_counts())
+print(data_merge_controls["hdcat"].value_counts(normalize=True)*100)
+print(data_merge_controls["sex"].value_counts())
+print(data_merge_controls["sex"].value_counts(normalize=True)*100)
+print(data_merge_controls["race"].value_counts())
+print(data_merge_controls["race"].value_counts(normalize=True)*100)
+print(data_merge_controls["isced"].value_counts())
+print(data_merge_controls["isced"].value_counts(normalize=True)*100)
+print(data_merge_controls["age"].mean())
 
 # Getting CAG array to concatenate to output later
 data_merge_no_preman = data_merge [data_merge ["hdcat"] != 2]
@@ -516,11 +537,14 @@ def main(data, sustainType):
 
         N = data.shape [1]
 
-        SuStaInLabels =  [] # Used to label plots with feature names later
+        # *** hard coding
+        SuStaInLabels = ["Motor: Finger tap", "Motor: Chorea LUE", "Cogn: Stroop colour", "Cogn: Symbol digit", "Psych: Apathy", "Psych: Anxiety"] # *** Lucy hardcoded for diagram
+
+        # SuStaInLabels =  [] # Used to label plots with feature names later
         SuStaInStageLabels =  [] # What is this used for?
 
-        for i in features_list: # Adding the biomarker names
-            SuStaInLabels.append(i)
+        # for i in features_list: # Adding the biomarker names
+        #     SuStaInLabels.append(i)
 
         print("SuStaInLabels", SuStaInLabels)
 
@@ -562,6 +586,7 @@ def main(data, sustainType):
                 L_no [:, i], L_yes [:, i] = mixtures[i].pdf(data[:, i].reshape(-1, 1)) # CALCULATING PDF
 
         # Creating MixtureSustain() object
+        # SuStaInLabels = ["Motor: Finger tap", "Motor: Chorea LUE", "Cogn: Stroop colour", "Cogn: Symbol digit", "Psych: Apathy", "Psych: Anxiety"] # *** Lucy hardcoded for diagram
         sustain = MixtureSustain(L_yes, L_no, SuStaInLabels, N_startpoints, N_S_max, N_iterations_MCMC, output_folder,
                                  dataset_name, use_parallel_startpoints=True)
         # # Plotting pdf...Lucy
@@ -666,13 +691,27 @@ stage_distributions = {}
 #     stage_distributions["Subtype", i] = distribution.iloc[:, 1] # 1 = stage column
 #     plt.hist(stage_distributions["Subtype", i])
 
-for i in range(1,N_S_max): # For each subtype
+# for i in range(1,N_S_max): # For each subtype
+#     figs, axs = plt.subplots()
+#     col = pd.DataFrame(results_subtype_stage_all[results_subtype_stage_all.iloc[:, 0] == i]) # Create a subset ("col") where subtype = i (so we have a (n, 2) array where columns = subtype and stage (0 = subtype column)
+#     stage_distributions["Subtype", i] = col.iloc[:, 1] # Create a (n, 1) array showing only stages (for subtype i)
+#     axs.hist(stage_distributions["Subtype", i], bins=len(features_list), range=(1,6), x_label="Stages", y_label="Number of participants in sample")
+#     plot_title = 'Stage dist for Subtype', i
+#     axs.set_title(plot_title)
+
+# TESTING - use test_plotting.py code to fix this
+for i in range(0,N_S_max): # For each subtype
     figs, axs = plt.subplots()
     col = pd.DataFrame(results_subtype_stage_all[results_subtype_stage_all.iloc[:, 0] == i]) # Create a subset ("col") where subtype = i (so we have a (n, 2) array where columns = subtype and stage (0 = subtype column)
     stage_distributions["Subtype", i] = col.iloc[:, 1] # Create a (n, 1) array showing only stages (for subtype i)
-    axs.hist(stage_distributions["Subtype", i], bins=len(features_list), range=(1,6), x_label="Stages", y_label="Number of participants in sample")
-    plot_title = 'Stage dist for Subtype', i
+    axs.hist(stage_distributions["Subtype", i], bins=len(features_list), range=(1,6))
+    # ax1 = axs.add_subplot(211)
+    axs.set_ylabel('Number of participants in sample')
+    # ax2 = i.add_subplot(211)
+    axs.set_xlabel('Stages')
+    plot_title = 'Stage dist for Subtype', i+1
     axs.set_title(plot_title)
+    # *** Add plots to big plot
 
 # data_baseline = data[data.iloc[:, -1] == visit_type]
 

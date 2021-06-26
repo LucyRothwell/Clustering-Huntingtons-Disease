@@ -43,18 +43,18 @@ def main():
     dataset_name            = 'sim'
     output_folder           = dataset_name + '_' + sustainType
 
-    Z_vals                  = np.array([[1,2,3]]*N)     # Z-scores for each biomarker
-    Z_max                   = np.array([5]*N)           # maximum z-score
+    Z_vals                  = np.array( [ [1,2,3]]*N)     # Z-scores for each biomarker
+    Z_max                   = np.array( [5]*N)           # maximum z-score
 
-    SuStaInLabels           = []
-    SuStaInStageLabels      = []
-    # ['Biomarker 0', 'Biomarker 1', ..., 'Biomarker N' ]
+    SuStaInLabels           =  []
+    SuStaInStageLabels      =  []
+    #  ['Biomarker 0', 'Biomarker 1', ..., 'Biomarker N' ]
 
     for i in range(N):
         SuStaInLabels.append( 'Biomarker '+str(i))
     
-    gt_f                    = [1+0.5*x for x in range(N_S_gt)]
-    gt_f                    = [x/sum(gt_f) for x in gt_f][::-1]
+    gt_f                    =  [1+0.5*x for x in range(N_S_gt)]
+    gt_f                    =  [x/sum(gt_f) for x in gt_f] [::-1]
 
     # ground truth sequence for each subtype
     gt_sequence             = generate_random_sustain_model(Z_vals,N_S_gt)
@@ -70,17 +70,17 @@ def main():
                                                              Z_max)
 
     # choose which subjects will be cases and which will be controls
-    index_case              = np.where(data[:, 0] < 1)
-    index_control           = np.where(data[:, 4] > 3)
+    index_case              = np.where(data [:, 0] < 1)
+    index_control           = np.where(data [:, 4] > 3)
 
-    labels                  = 2 * np.ones(data.shape[0], dtype=int)  # 2 - MCI, default assignment here
-    labels[index_case]      = 0
-    labels[index_control]   = 1
+    labels                  = 2 * np.ones(data.shape [0], dtype=int)  # 2 - MCI, default assignment here
+    labels [index_case]      = 0
+    labels [index_control]   = 1
 
     if      sustainType == 'mixture_GMM' or sustainType == "mixture_KDE":
 
-        data_case_control   = data[labels != 2, :]
-        labels_case_control = labels[labels != 2]
+        data_case_control   = data [labels != 2, :]
+        labels_case_control = labels [labels != 2]
 
         if sustainType == "mixture_GMM":
             mixtures        = fit_all_gmm_models(data, labels)
@@ -95,9 +95,9 @@ def main():
 
         for i in range(N):
             if sustainType == "mixture_GMM":
-                L_no[:, i], L_yes[:, i] = mixtures[i].pdf(None, data[:, i])
+                L_no [:, i], L_yes [:, i] = mixtures [i].pdf(None, data [:, i])
             elif sustainType   == "mixture_KDE":
-                L_no[:, i], L_yes[:, i] = mixtures[i].pdf(data[:, i].reshape(-1, 1))
+                L_no [:, i], L_yes [:, i] = mixtures [i].pdf(data [:, i].reshape(-1, 1))
 
         sustain             = MixtureSustain(L_yes, L_no,        SuStaInLabels, N_startpoints, N_S_max, N_iterations_MCMC, output_folder, dataset_name)
 
@@ -110,7 +110,7 @@ def main():
     sustain.run_sustain_algorithm()
 
     if validate:
-        test_idxs              = []
+        test_idxs              =  []
 
         cv                     = sklearn.model_selection.StratifiedKFold(n_splits=N_folds, shuffle=True)
         cv_it                  = cv.split(data, labels)

@@ -377,7 +377,8 @@ class MixtureSustain(AbstractSustain):
 
                 #ax [i].set_ylabel('Biomarker name') #, fontsize=20)
                 ax [i].set_xlabel('Event position', fontsize=X_FONT_SIZE)
-                ax [i].set_title('Group ' + str(i) + ' (f=' + str(vals [i])  + ', n=' + str(int(np.round(vals [i] * n_samples)))  + ')', fontsize=TITLE_FONT_SIZE)
+                # ax [i].set_title('Group ' + str(i) + ' (f=' + str(vals [i])  + ', n=' + str(int(np.round(vals [i] * n_samples)))  + ')', fontsize=TITLE_FONT_SIZE)
+                ax [i].set_title('Group ' + str(i+1) + ' (f=' + str(vals [i])  + ', n=' + str(int(np.round(vals [i] * n_samples)))  + ')', fontsize=TITLE_FONT_SIZE) # *** Lucy
 
             else: #**** one subtype
                 ax.imshow(out_mat_i) #, interpolation='nearest')#, cmap=plt.cm.Blues) # [...,::-1]
@@ -392,7 +393,8 @@ class MixtureSustain(AbstractSustain):
 
                 #ax.set_ylabel('Biomarker name') #, fontsize=20)
                 ax.set_xlabel('Event position', fontsize=X_FONT_SIZE)
-                ax.set_title('Group ' + str(i) + ' (f=' + str(vals [i])  + ', n=' + str(int(np.round(vals [i] * n_samples)))  + ')', fontsize=TITLE_FONT_SIZE)
+                # ax.set_title('Group ' + str(i) + ' (f=' + str(vals [i])  + ', n=' + str(int(np.round(vals [i] * n_samples)))  + ')', fontsize=TITLE_FONT_SIZE)
+                ax.set_title('Group ' + str(i+1) + ' (f=' + str(vals [i])  + ', n=' + str(int(np.round(vals [i] * n_samples)))  + ')', fontsize=TITLE_FONT_SIZE) # *** Lucy
 
         plt.tight_layout()
         if cval:

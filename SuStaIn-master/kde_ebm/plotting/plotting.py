@@ -23,8 +23,9 @@ def mixture_model_grid(X, y, mixtures,
     n_particp, n_biomarkers = X.shape
     if score_names is None:
         score_names =  ['BM{}'.format(x+1) for x in range(n_biomarkers)]
-    if class_names is None:
-        class_names =  ['CN', 'AD']
+    # if class_names is None:
+        # class_names =  ['Control', 'HD'] # ***
+        # class_names =  ['CN', 'AD']C
     n_x = np.round(np.sqrt(n_biomarkers)).astype(int)
     n_y = np.ceil(np.sqrt(n_biomarkers)).astype(int)
     fig, ax = plt.subplots(n_y, n_x, figsize=(10, 10))
@@ -64,8 +65,9 @@ def mixture_model_grid(X, y, mixtures,
     i += 1
     for j in range(i, n_x*n_y):
         fig.delaxes(ax [j // n_x, j % n_x])
-    fig.legend(leg1 [2]+leg2, list(class_names) +  ['p(event occured)'],
-               loc='lower right', fontsize=15)
+    # fig.legend(leg1 [2]+leg2, list(class_names) +  ['p(event occured)'],
+    # fig.legend(leg1 [2]+leg2, ['p(event occured)'], # Lucy
+    #            loc='lower right', fontsize=15)
     fig.tight_layout()
     return fig, ax
 
@@ -121,12 +123,12 @@ def stage_histogram(stages, y, max_stage=None, class_names=None):
     fig, ax = plt.subplots()
     hist_dat =  [stages [y == 0],
                 stages [y == 1]]
-    if class_names is None:
-        class_names =  ['CN', 'tAD']
+    # if class_names is None:
+    #     class_names =  ['Control', 'HD']# *** Lucy
+    #     # class_names =  ['CN', 'tAD']
     if max_stage is None:
         max_stage = stages.max()
     hist_c = colors [:2]
-    print("hi")
     n, bins, patch = ax.hist(hist_dat,
                              label=None,
                              # label=class_names,

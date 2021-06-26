@@ -5,20 +5,20 @@ pySuStaIn
 
 Papers
 ============
-- The SuStaIn algorithm: [Young et al. 2018](https://doi.org/10.1038/s41467-018-05892-0) 
-- The event-based model: [Fonteijn et al. 2012](https://doi.org/10.1016/j.neuroimage.2012.01.062), (with Gaussian mixture modelling [Young et al. 2014](https://doi.org/10.1093/brain/awu176))
-- The piecewise linear z-score model: [Young et al. 2018](https://doi.org/10.1038/s41467-018-05892-0) 
-- Implementation in multiple sclerosis (predicting treatment response): [Eshaghi et al. 2020](https://www.medrxiv.org/content/10.1101/19011080v2)
+- The SuStaIn algorithm:  [Young et al. 2018](https://doi.org/10.1038/s41467-018-05892-0) 
+- The event-based model:  [Fonteijn et al. 2012](https://doi.org/10.1016/j.neuroimage.2012.01.062), (with Gaussian mixture modelling  [Young et al. 2014](https://doi.org/10.1093/brain/awu176))
+- The piecewise linear z-score model:  [Young et al. 2018](https://doi.org/10.1038/s41467-018-05892-0) 
+- Implementation in multiple sclerosis (predicting treatment response):  [Eshaghi et al. 2020](https://www.medrxiv.org/content/10.1101/19011080v2)
 
 Dependencies
 ============
 - Python >= 3.5 
-- [NumPy >= 1.18](https://github.com/numpy/numpy)
-- [SciPy](https://github.com/scipy/scipy)
-- [Matplotlib](https://github.com/matplotlib/matplotlib)
-- [Scikit-learn](https://scikit-learn.org) for cross-validation
-- [kde_ebm](https://github.com/noxtoby/kde_ebm_open) for mixture modelling (KDE and GMM included)
-- [pathos](https://github.com/uqfoundation/pathos) for parallelization
+-  [NumPy >= 1.18](https://github.com/numpy/numpy)
+-  [SciPy](https://github.com/scipy/scipy)
+-  [Matplotlib](https://github.com/matplotlib/matplotlib)
+-  [Scikit-learn](https://scikit-learn.org) for cross-validation
+-  [kde_ebm](https://github.com/noxtoby/kde_ebm_open) for mixture modelling (KDE and GMM included)
+-  [pathos](https://github.com/uqfoundation/pathos) for parallelization
 
 Parallelisation
 ===============
