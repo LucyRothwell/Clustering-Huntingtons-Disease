@@ -66,8 +66,10 @@ import time
 start_time = time.time()
 
 # (0) Load data
-enroll_df = pd.read_csv("/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD/Data - Enroll HD/enroll.csv", delimiter=',')
-profile_df = pd.read_csv("/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD/Data - Enroll HD/profile.csv", delimiter=',')
+
+enroll_df = pd.read_csv(os.path.dirname(os.getcwd()) + "/data_enroll_hd/enroll.csv", delimiter=',')
+profile_df = pd.read_csv(os.path.dirname(os.getcwd()) + "/data_enroll_hd/profile.csv", delimiter=',')
+
 data = pd.merge(enroll_df, profile_df [ ["sex", "subjid"]], on="subjid", how='left') # Adding in "sex" and "subjid" from profile.csv
 
 # (0.1) Recoding the HD category column
@@ -525,6 +527,9 @@ def main(data, sustainType):
     Z_vals = np.array( [ [1, 2, 3]] * N)  # Z-scores for each biomarker
     Z_max = np.array( [5] * N)  # maximum z-score
 
+    SuStaInLabels = ["Motor: Finger tap", "Motor: Chorea LUE", "Cogn: Stroop colour", "Cogn: Symbol digit", "Psych: Apathy",
+                 "Psych: Anxiety"]  # *** Lucy hardcoded for diagram
+
 # ---- SMOOTHING THE DATA / GETTING KDE FITS -----
 # ---- + loading sustain = MixtureSustain()----
 
@@ -541,7 +546,7 @@ def main(data, sustainType):
         SuStaInLabels = ["Motor: Finger tap", "Motor: Chorea LUE", "Cogn: Stroop colour", "Cogn: Symbol digit", "Psych: Apathy", "Psych: Anxiety"] # *** Lucy hardcoded for diagram
 
         # SuStaInLabels =  [] # Used to label plots with feature names later
-        SuStaInStageLabels =  [] # What is this used for?
+        # SuStaInStageLabels =  [] # What is this used for?
 
         # for i in features_list: # Adding the biomarker names
         #     SuStaInLabels.append(i)
@@ -557,7 +562,7 @@ def main(data, sustainType):
         elif sustainType == "mixture_KDE":
             mixtures = fit_all_kde_models(data, labels_case_control.astype(int))
 
-        outDir = "/Users/lucyrothwell/Google_Drive/MSc_Comp/9_Dissertation HD - PUBLISH/SuStaIn-master/" # defining where results will go
+        outDir = os.getcwd() # defining where results will go
 
         # Produces the KDE fits figure
         fig, ax = plotting.mixture_model_grid(data_case_control, labels_case_control, mixtures, SuStaInLabels)
@@ -586,7 +591,8 @@ def main(data, sustainType):
                 L_no [:, i], L_yes [:, i] = mixtures[i].pdf(data[:, i].reshape(-1, 1)) # CALCULATING PDF
 
         # Creating MixtureSustain() object
-        # SuStaInLabels = ["Motor: Finger tap", "Motor: Chorea LUE", "Cogn: Stroop colour", "Cogn: Symbol digit", "Psych: Apathy", "Psych: Anxiety"] # *** Lucy hardcoded for diagram
+
+        SuStaInLabels = ["Motor: Finger tap", "Motor: Chorea LUE", "Cogn: Stroop colour", "Cogn: Symbol digit", "Psych: Apathy", "Psych: Anxiety"] # *** Lucy hardcoded for diagram
         sustain = MixtureSustain(L_yes, L_no, SuStaInLabels, N_startpoints, N_S_max, N_iterations_MCMC, output_folder,
                                  dataset_name, use_parallel_startpoints=True)
         # # Plotting pdf...Lucy
