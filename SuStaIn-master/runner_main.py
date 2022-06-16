@@ -701,7 +701,7 @@ stage_distributions = {}
 #     plot_title = 'Stage dist for Subtype', i
 #     axs.set_title(plot_title)
 
-# TESTING - use test_plotting.py code to fix this
+# TESTING CODE - use test_plotting.py code to fix this
 for i in range(0,N_S_max): # For each subtype
     figs, axs = plt.subplots()
     col = pd.DataFrame(results_subtype_stage_all[results_subtype_stage_all.iloc[:, 0] == i]) # Create a subset ("col") where subtype = i (so we have a (n, 2) array where columns = subtype and stage (0 = subtype column)
