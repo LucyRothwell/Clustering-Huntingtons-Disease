@@ -527,8 +527,14 @@ def main(data, sustainType):
     Z_vals = np.array( [ [1, 2, 3]] * N)  # Z-scores for each biomarker
     Z_max = np.array( [5] * N)  # maximum z-score
 
-    SuStaInLabels = ["Motor: Finger tap", "Motor: Chorea LUE", "Cogn: Stroop colour", "Cogn: Symbol digit", "Psych: Apathy",
+    SuStaInLabels = ["Motor: Finger tap", "Motor: Chorea", "Cogn: Stroop", "Cogn: SDMT", "Psych: Apathy",
                  "Psych: Anxiety"]  # *** Lucy hardcoded for diagram
+
+    # SuStaInLabels =  [] # Used to label plots with feature names later
+    # SuStaInStageLabels =  [] # What is this used for?
+
+    # for i in features_list: # Adding the biomarker names
+    #     SuStaInLabels.append(i)
 
 # ---- SMOOTHING THE DATA / GETTING KDE FITS -----
 # ---- + loading sustain = MixtureSustain()----
@@ -541,15 +547,6 @@ def main(data, sustainType):
         data = data_case_control # just renaming for rest of algo
 
         N = data.shape [1]
-
-        # *** hard coding
-        SuStaInLabels = ["Motor: Finger tap", "Motor: Chorea LUE", "Cogn: Stroop colour", "Cogn: Symbol digit", "Psych: Apathy", "Psych: Anxiety"] # *** Lucy hardcoded for diagram
-
-        # SuStaInLabels =  [] # Used to label plots with feature names later
-        # SuStaInStageLabels =  [] # What is this used for?
-
-        # for i in features_list: # Adding the biomarker names
-        #     SuStaInLabels.append(i)
 
         print("SuStaInLabels", SuStaInLabels)
 
@@ -592,7 +589,6 @@ def main(data, sustainType):
 
         # Creating MixtureSustain() object
 
-        SuStaInLabels = ["Motor: Finger tap", "Motor: Chorea LUE", "Cogn: Stroop colour", "Cogn: Symbol digit", "Psych: Apathy", "Psych: Anxiety"] # *** Lucy hardcoded for diagram
         sustain = MixtureSustain(L_yes, L_no, SuStaInLabels, N_startpoints, N_S_max, N_iterations_MCMC, output_folder,
                                  dataset_name, use_parallel_startpoints=True)
         # # Plotting pdf...Lucy
@@ -725,7 +721,7 @@ for i in range(0,N_S_max): # For each subtype
 # > See step 10 - just increase N_sub at beginning
 
 for i in range(1,N_S_max+1):
-    plt.scatter([i,i,i,i,i,i,i,i,i,i], log_likelihoods[i-1], y_label="Log likelihood", x_label="Number of subtypes in model")
+    plt.scatter([i,i,i,i,i,i,i,i,i,i], log_likelihoods[i-1]) # y_label="Log likelihood", x_label="Number of subtypes in model"
 
 ### (17) Find subtype and stage of an individual NEW DATA
 # > At Visit 1 (Baseline) and Visit 2. Do they stay in same subtype / move up a stage?
