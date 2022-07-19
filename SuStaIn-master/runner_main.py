@@ -141,7 +141,7 @@ features_list = ["chorlue", "fingtapl", "scnt1", "sdmt1", "pbas3sv", "pbas6sv"] 
 # - apathy (P)
 # - irritability (P)
 
-# Top RF
+# Top Random Forest
 # - diagconf
 # - indepscl - Subject's independence in %
 # - miscore (M)
@@ -192,7 +192,7 @@ N_folds = 10 # NUMBER OF FOLDS FOR CROSS VALIDATION
 #
 # data["isced"].isnull().sum() # Check new num of missing isced values
 
-# --------------------------------- CODE CAN RUN WITHOUT EDITS FROM HERE -----------------------------------------------
+# --------------------------------------------------------------------------------
 
 num_covars = len(covariates_list)
 num_predictors = len(features_list)
@@ -373,6 +373,7 @@ data_merge_preman = data_merge[data_merge["hdcat"] == 2]
 data_disease_pm = pd.concat([data_merge_disease, data_merge_preman], axis=0)
 data_merge_controls = data_merge[data_merge["hdcat"] == 0]
 
+print("--- COHORT STATS - DISEASE ---")
 print(data_disease_pm["hdcat"].value_counts())
 print(data_disease_pm["hdcat"].value_counts(normalize=True)*100)
 print(data_disease_pm["sex"].value_counts())
@@ -383,6 +384,7 @@ print(data_disease_pm["isced"].value_counts())
 print(data_disease_pm["isced"].value_counts(normalize=True)*100)
 print(data_disease_pm["age"].mean())
 
+print("--- COHORT STATS - CONTROL ---")
 print(data_merge_controls["hdcat"].value_counts())
 print(data_merge_controls["hdcat"].value_counts(normalize=True)*100)
 print(data_merge_controls["sex"].value_counts())
@@ -391,7 +393,7 @@ print(data_merge_controls["race"].value_counts())
 print(data_merge_controls["race"].value_counts(normalize=True)*100)
 print(data_merge_controls["isced"].value_counts())
 print(data_merge_controls["isced"].value_counts(normalize=True)*100)
-print(data_merge_controls["age"].mean())
+print("Mean age = ", data_merge_controls["age"].mean())
 
 # Getting CAG array to concatenate to output later
 data_merge_no_preman = data_merge [data_merge ["hdcat"] != 2]
@@ -541,7 +543,7 @@ def main(data, sustainType):
 
     if sustainType == 'mixture_GMM' or sustainType == "mixture_KDE":
 
-        case_control_all = data [data [:, -1] != 2] # Removing pre-manifest - leaving cases and controls (KDE is about drawing out differences bnetween control and disease - so including pre-man would just confuse it)
+        case_control_all = data [data [:, -1] != 2] # Removing pre-manifest - leaving cases and controls (KDE is about drawing out differences between control and disease - so including pre-man would just confuse it)
         labels_case_control = case_control_all [:, -1] # getting labels (-1 to remove hdcat)
         data_case_control = case_control_all [:, :-1] # getting predictors (-1 to remove hdcat)
         data = data_case_control # just renaming for rest of algo
