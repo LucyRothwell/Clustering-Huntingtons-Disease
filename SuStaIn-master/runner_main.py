@@ -34,7 +34,6 @@
 # (14) T-test CAG distributions between subtypes
 
 
-
 # --- Validation ---
 # (15) Find optimal number of subtypes (see step 10) - CODE WRITTEN UP
 # (16) Find subtype and stage of an individual NEW DATA
@@ -263,7 +262,7 @@ for column in data.iloc [:, skip_start:]: # Except subject id, hd_cat
     data [column] = pd.to_numeric(data [column])
 # > Remove cols with > 40% NaNs
 # print("Columns with > 40% NaNs (which have been dropped):")
-# for column in data: # -1 to exclude isced *** This exclused isced unless done just on Baseline visits)
+# for column in data: # -1 to exclude isced *** This excludes isced unless done just on Baseline visits)
 #     if (data [column].isna().sum() / data.shape [0]) > 0.4:
 #         # print(column)
 #         data.drop(column, inplace=True, axis=1)
@@ -680,15 +679,15 @@ print("Cag S1&3", ttest_ind(sub1_cag, sub3_cag, nan_policy="omit"))
 print("--- %s mins ---" % ((time.time() - start_time)/60))
 
 
-#### (15) Subtypes and stages of all participants in training set
-
-# Forming array with subtypes and stages of all participants in training set
-results_subtype_stage_all = np.concatenate([ml_subtype, ml_stage], axis=1)
-results_subtype_stage_all = pd.DataFrame(results_subtype_stage_all)
-results_subtype_stage_all = results_subtype_stage_all.astype(int)
-
-# Distributions of stages for each cluster
-stage_distributions = {}
+# #### (15) Subtypes and stages of all participants in training set
+#
+# # Forming array with subtypes and stages of all participants in training set
+# results_subtype_stage_all = np.concatenate([ml_subtype, ml_stage], axis=1)
+# results_subtype_stage_all = pd.DataFrame(results_subtype_stage_all)
+# results_subtype_stage_all = results_subtype_stage_all.astype(int)
+#
+# # Distributions of stages for each cluster
+# stage_distributions = {}
 
 # for i in range(0, N_S_max+1):
 #     distribution = pd.DataFrame(results_subtype_stage_all[results_subtype_stage_all.iloc[:, 0] == i]) # 0 = subtype column
@@ -703,27 +702,27 @@ stage_distributions = {}
 #     plot_title = 'Stage dist for Subtype', i
 #     axs.set_title(plot_title)
 
-# TESTING CODE - use test_plotting.py code to fix this
-for i in range(0,N_S_max): # For each subtype
-    figs, axs = plt.subplots()
-    col = pd.DataFrame(results_subtype_stage_all[results_subtype_stage_all.iloc[:, 0] == i]) # Create a subset ("col") where subtype = i (so we have a (n, 2) array where columns = subtype and stage (0 = subtype column)
-    stage_distributions["Subtype", i] = col.iloc[:, 1] # Create a (n, 1) array showing only stages (for subtype i)
-    axs.hist(stage_distributions["Subtype", i], bins=len(features_list), range=(1,6))
-    # ax1 = axs.add_subplot(211)
-    axs.set_ylabel('Number of participants in sample')
-    # ax2 = i.add_subplot(211)
-    axs.set_xlabel('Stages')
-    plot_title = 'Stage dist for Subtype', i+1
-    axs.set_title(plot_title)
-    # *** Add plots to big plot
+# # TESTING CODE - use test_plotting.py code to fix this
+# for i in range(0,N_S_max): # For each subtype
+#     figs, axs = plt.subplots()
+#     col = pd.DataFrame(results_subtype_stage_all[results_subtype_stage_all.iloc[:, 0] == i]) # Create a subset ("col") where subtype = i (so we have a (n, 2) array where columns = subtype and stage (0 = subtype column)
+#     stage_distributions["Subtype", i] = col.iloc[:, 1] # Create a (n, 1) array showing only stages (for subtype i)
+#     axs.hist(stage_distributions["Subtype", i], bins=len(features_list), range=(1,6))
+#     # ax1 = axs.add_subplot(211)
+#     axs.set_ylabel('Number of participants in sample')
+#     # ax2 = i.add_subplot(211)
+#     axs.set_xlabel('Stages')
+#     plot_title = 'Stage dist for Subtype', i+1
+#     axs.set_title(plot_title)
+#     # *** Add plots to big plot
 
 # data_baseline = data[data.iloc[:, -1] == visit_type]
 
-### (16) Find optimal number of subtypes
-# > See step 10 - just increase N_sub at beginning
-
-for i in range(1,N_S_max+1):
-    plt.scatter([i,i,i,i,i,i,i,i,i,i], log_likelihoods[i-1]) # y_label="Log likelihood", x_label="Number of subtypes in model"
+# ### (16) Find optimal number of subtypes
+# # > See step 10 - just increase N_sub at beginning
+#
+# for i in range(1,N_S_max+1):
+#     plt.scatter([i,i,i,i,i,i,i,i,i,i], log_likelihoods[i-1]) # y_label="Log likelihood", x_label="Number of subtypes in model"
 
 ### (17) Find subtype and stage of an individual NEW DATA
 # > At Visit 1 (Baseline) and Visit 2. Do they stay in same subtype / move up a stage?
@@ -737,7 +736,7 @@ for i in range(1,N_S_max+1):
 
 # ### (18) Find subtype and stage - all patients
 #
-# # *** NOTE *** (do onlu requested by journal)
+# # *** NOTE *** (do only if requested by journal)
 # # Peter's suggested approach:
 # # Do two runs of functions:
 # # o	(1) subtype_inds() - get array of baseline
