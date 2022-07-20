@@ -7,7 +7,6 @@
 #######################################################################################################################
 
 # CONTENTS
-# Items starting ">>>" = for testing new individuals patients
 # ---Preprocessing---
 # (0) Load data
 # (0.1) Recoding the HD category column
@@ -24,7 +23,6 @@
 # (10) Remove outliers
 # (11) Data counts for write-up
 # (12) Covariate adjustment(+ Z-scoring if sustainType=ZScoreSustain)
-# >>> (11.5) Covariate adjustment for new_patient_data
 # --- Analysis ---
 # (13) RUN model using preprocessed data
 # (14) T-test likelihood differences between subtypes
